@@ -56,6 +56,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    console.log('BattleScene.create() called with enemy:', this.enemy);
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     
@@ -125,10 +126,12 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   private startBattle() {
+    console.log('BattleScene.startBattle() - Setting state to INTRO');
     this.state = BattleState.INTRO;
     this.showMessage(this.enemy.introText);
     
     this.time.delayedCall(2000, () => {
+      console.log('BattleScene - Changing to PLAYER_TURN');
       this.state = BattleState.PLAYER_TURN;
       this.showMessage('What will you do?');
       this.showActionMenu();
@@ -148,12 +151,15 @@ export default class BattleScene extends Phaser.Scene {
     
     const buttonWidth = 160;
     const buttonHeight = 50;
-    const startX = width / 2 - (buttonWidth * 2 + 10);
+    const spacing = 10;
+    // Center the 2x2 grid of buttons
+    const totalWidth = buttonWidth * 2 + spacing;
+    const startX = (width - totalWidth) / 2 + buttonWidth / 2;
     const startY = height - 80;
     
     actions.forEach((action, index) => {
-      const x = startX + (index % 2) * (buttonWidth + 10);
-      const y = startY + Math.floor(index / 2) * (buttonHeight + 10);
+      const x = startX + (index % 2) * (buttonWidth + spacing);
+      const y = startY + Math.floor(index / 2) * (buttonHeight + spacing);
       
       const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x0066CC, 0.8);
       button.setStrokeStyle(2, 0xffffff);

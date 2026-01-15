@@ -58,29 +58,92 @@ export default class PreloadScene extends Phaser.Scene {
   }
   
   private createFallbackTextures() {
-    // Check if player sprite loaded, if not create a colored rectangle
+    // Create player character sprite if not loaded
     if (!this.textures.exists('player')) {
       const graphics = this.make.graphics({ x: 0, y: 0, add: false });
-      graphics.fillStyle(0x0066CC); // Arribatec blue
-      graphics.fillRect(0, 0, 32, 48);
+      
+      // Head
+      graphics.fillStyle(0xFFDBB5); // Skin tone
+      graphics.fillCircle(16, 12, 8);
+      
+      // Body (shirt - Arribatec blue)
+      graphics.fillStyle(0x0066CC);
+      graphics.fillRect(10, 20, 12, 16);
+      
+      // Arms
+      graphics.fillRect(6, 22, 4, 12);
+      graphics.fillRect(22, 22, 4, 12);
+      
+      // Legs (pants - dark blue)
+      graphics.fillStyle(0x003366);
+      graphics.fillRect(10, 36, 5, 12);
+      graphics.fillRect(17, 36, 5, 12);
+      
+      // Hair
+      graphics.fillStyle(0x5C4033);
+      graphics.fillCircle(16, 8, 6);
+      
+      // Eyes
+      graphics.fillStyle(0x000000);
+      graphics.fillCircle(13, 12, 1);
+      graphics.fillCircle(19, 12, 1);
+      
       graphics.generateTexture('player', 32, 48);
       graphics.destroy();
       console.log('Created fallback player texture');
     }
     
-    // Create fallback textures for missing enemies
-    const enemies = [
-      'auditor', 'budget-manager', 'tax-consultant', 'cfo',
-      'angry-customer', 'tour-operator', 'event-planner', 'hotel-manager',
-      'data-analyst', 'research-director', 'grant-writer', 'lead-scientist'
-    ];
+    // Create fallback textures for missing enemies - different colors/styles
+    const enemyStyles = {
+      'auditor': { color: 0x8B0000, accessory: 0xFFD700 }, // Dark red with gold (accountant)
+      'budget-manager': { color: 0x4B0082, accessory: 0xC0C0C0 }, // Indigo with silver
+      'tax-consultant': { color: 0x2F4F4F, accessory: 0x90EE90 }, // Dark slate with light green
+      'cfo': { color: 0x000080, accessory: 0xFFD700 }, // Navy with gold (boss)
+      'angry-customer': { color: 0xFF4500, accessory: 0xFF0000 }, // Orange-red angry
+      'tour-operator': { color: 0x20B2AA, accessory: 0xFFFFE0 }, // Light sea green
+      'event-planner': { color: 0xFF69B4, accessory: 0xFFFFFF }, // Hot pink
+      'hotel-manager': { color: 0x8B4513, accessory: 0xFFD700 }, // Saddle brown with gold
+      'data-analyst': { color: 0x4682B4, accessory: 0x00CED1 }, // Steel blue with cyan
+      'research-director': { color: 0x556B2F, accessory: 0xF0E68C }, // Dark olive with khaki
+      'grant-writer': { color: 0x9370DB, accessory: 0xFFFFFF }, // Medium purple
+      'lead-scientist': { color: 0x2E8B57, accessory: 0xFFFFFF } // Sea green (boss)
+    };
     
-    enemies.forEach(enemy => {
+    Object.entries(enemyStyles).forEach(([enemy, style]) => {
       const key = `enemy-${enemy}`;
       if (!this.textures.exists(key)) {
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
-        graphics.fillStyle(0xFF6B6B); // Red for enemies
-        graphics.fillRect(0, 0, 64, 64);
+        
+        // Head
+        graphics.fillStyle(0xFFDBB5); // Skin tone
+        graphics.fillCircle(32, 20, 12);
+        
+        // Body (different color per enemy type)
+        graphics.fillStyle(style.color);
+        graphics.fillRect(20, 32, 24, 24);
+        
+        // Arms
+        graphics.fillRect(14, 36, 6, 16);
+        graphics.fillRect(44, 36, 6, 16);
+        
+        // Accessory (briefcase, folder, etc) - different color
+        graphics.fillStyle(style.accessory);
+        graphics.fillRect(12, 46, 8, 6);
+        
+        // Hair
+        graphics.fillStyle(0x3C3C3C);
+        graphics.fillCircle(32, 14, 8);
+        
+        // Eyes (angry expression)
+        graphics.fillStyle(0x000000);
+        graphics.fillCircle(27, 20, 2);
+        graphics.fillCircle(37, 20, 2);
+        
+        // Angry eyebrows
+        graphics.lineStyle(2, 0x000000);
+        graphics.lineBetween(24, 16, 29, 18);
+        graphics.lineBetween(35, 18, 40, 16);
+        
         graphics.generateTexture(key, 64, 64);
         graphics.destroy();
       }
