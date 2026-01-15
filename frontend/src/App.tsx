@@ -6,6 +6,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import arribatecTheme from './theme/arribatecTheme';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
+import GamePage from './components/GamePage';
 
 // Create auth configuration with enhanced error handling
 const authConfig = createMultiTenantKeycloakConfig({
@@ -50,6 +51,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <HomePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/game"
+                element={
+                  <ProtectedRoute>
+                    <GamePage />
                   </ProtectedRoute>
                 }
               />

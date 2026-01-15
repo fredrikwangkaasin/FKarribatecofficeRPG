@@ -52,6 +52,12 @@ export default defineConfig({
     https: httpsConfig,
     cors: true,
     open: 'https://demo.localtest.me:7312/FKarribatecofficerpg/',
+    hmr: {
+      protocol: 'wss',
+      host: 'demo.localtest.me',
+      port: 7312,
+      clientPort: 7312
+    },
     proxy: {
       '/FKarribatecofficerpg/api': {
         target: 'http://localhost:7412',
@@ -94,20 +100,9 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          phaser: ['phaser'], // Separate Phaser chunk for better caching
         }
       }
-    }
-  },
-  resolve: {
-    dedupe: ['react', 'react-dom'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@components': path.resolve(__dirname, 'src/components'),
-      '@services': path.resolve(__dirname, 'src/services'),
-      '@hooks': path.resolve(__dirname, 'src/hooks'),
-      '@types': path.resolve(__dirname, 'src/types'),
-      '@utils': path.resolve(__dirname, 'src/utils'),
-      '@config': path.resolve(__dirname, 'src/config')
     }
   },
   optimizeDeps: {
@@ -120,8 +115,14 @@ export default defineConfig({
       '@mui/material',
       '@mui/icons-material',
       '@emotion/react',
-      '@emotion/styled'
+      '@emotion/styled',
+      'phaser' // Pre-bundle Phaser for faster dev server startup
     ],
     force: true
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
   }
 })

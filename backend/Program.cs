@@ -1,5 +1,6 @@
 using Arribatec.Nexus.Client.Extensions;
 using Arribatec.Nexus.Client.TaskExecution;
+using FKarribatecofficerpg.Api.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,10 @@ builder.AddArribatecNexus(
             WriteToConsole = true
         };
     });
+
+// Register game repository
+builder.Services.AddScoped<IGameStateRepository, GameStateRepository>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

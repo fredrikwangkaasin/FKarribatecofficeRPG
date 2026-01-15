@@ -1,5 +1,6 @@
 import { useAuth } from '@arribatec-sds/arribatec-nexus-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { buildApiPath } from '@/utils/api';
 import MasterApiTest from './MasterApiTest';
@@ -23,7 +24,8 @@ import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   Api as ApiIcon,
-  Security as SecurityIcon
+  Security as SecurityIcon,
+  SportsEsports as GameIcon
 } from '@mui/icons-material';
 
 interface ApiData {
@@ -49,6 +51,7 @@ interface ApiData {
 
 function HomePage() {
   const { user, logout, getToken } = useAuth();
+  const navigate = useNavigate();
   const [apiData, setApiData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +108,36 @@ function HomePage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Welcome to the FK Arribatecofficerpg
         </Typography>
+
+        {/* Play Game Button */}
+        <Card sx={{ mb: 3, bgcolor: 'primary.main', color: 'white' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  Arribatec Office RPG
+                </Typography>
+                <Typography variant="body1">
+                  Battle office clients with logical arguments in this turn-based RPG adventure!
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<GameIcon />}
+                onClick={() => navigate('/game')}
+                sx={{ 
+                  bgcolor: 'white', 
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'grey.200' },
+                  minWidth: 150
+                }}
+              >
+                Play Game
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* Master API Test Section (for development) */}
         {process.env.NODE_ENV === 'development' && (

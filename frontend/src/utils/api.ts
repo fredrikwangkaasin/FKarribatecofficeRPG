@@ -65,7 +65,10 @@ export const getApiBasePath = (): string => {
  * Enhanced error handler for API calls
  */
 const handleApiError = (error: AxiosError) => {
-  console.error('API Error:', error);
+  // Suppress logging for 500 errors (database not configured - expected in demo mode)
+  if (error.response?.status !== 500) {
+    console.error('API Error:', error);
+  }
   
   // Parse the error using our Master API error utilities
   const parsedError = parseMasterApiError(error);
