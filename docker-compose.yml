@@ -1,0 +1,36 @@
+services:
+  FKarribatecofficerpg-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_USERNAME=${GITHUB_USERNAME}
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    container_name: FKarribatecofficerpg-app
+    environment:
+      - TZ=Europe/Oslo
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_PATHBASE=/FKarribatecofficerpg
+      - NEXUS_API_URL=http://nexus-console:7833
+      - SECURITY__INTERNALAPITOKEN=dev-internal-token
+      - ApplicationName=Sample
+    extra_hosts:
+      - "keycloak.localtest.me:host-gateway"
+    networks:
+      - nexus-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.FKarribatecofficerpg-frontend.rule=HostRegexp(`^.+\\.localtest\\.me$`) && PathPrefix(`/FKarribatecofficerpg`)"
+      - "traefik.http.routers.FKarribatecofficerpg-frontend.entrypoints=websecure"
+      - "traefik.http.routers.FKarribatecofficerpg-frontend.tls=true"
+      - "traefik.http.routers.FKarribatecofficerpg-frontend.service=FKarribatecofficerpg-frontend"
+      - "traefik.http.routers.FKarribatecofficerpg-frontend.middlewares=FKarribatecofficerpg-frontend-stripprefix"
+      - "traefik.http.middlewares.FKarribatecofficerpg-frontend-stripprefix.stripprefix.prefixes=/FKarribatecofficerpg"
+      - "traefik.http.services.FKarribatecofficerpg-frontend.loadbalancer.server.port=80"
+    restart: unless-stopped
+
+
+networks:
+  nexus-net:
+    external: true
