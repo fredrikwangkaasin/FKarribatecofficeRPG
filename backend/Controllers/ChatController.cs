@@ -483,7 +483,7 @@ The correctIndex is 0-3 indicating which answer is correct.";
             // Try to get a pre-generated question from database
             var zone = NormalizeZone(request.EnemyZone);
             var dbQuestion = await _quizRepo.GetRandomUnansweredQuestionAsync(
-                tenantId, userId, zone, request.Difficulty);
+                tenantId, userId, zone, request.Difficulty, request.RecentlySeenIds);
 
             QuizQuestion question;
             Guid? questionId = null;

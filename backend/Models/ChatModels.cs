@@ -88,7 +88,8 @@ public class BattleQuizRequest
     public bool IsBoss { get; set; }
     public int Difficulty { get; set; } = 5; // 1-10
     public int PlayerLevel { get; set; } = 1;
-    public List<string>? PreviousQuestions { get; set; } // To avoid repeats
+    public List<string>? PreviousQuestions { get; set; } // To avoid repeats (legacy)
+    public List<Guid>? RecentlySeenIds { get; set; } // Question IDs recently shown to avoid duplicates
 }
 
 /// <summary>

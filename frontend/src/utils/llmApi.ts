@@ -101,6 +101,7 @@ export interface BattleQuizRequest {
   difficulty: number;
   playerLevel: number;
   previousQuestions?: string[];
+  recentlySeenIds?: string[]; // Question IDs recently shown to avoid duplicates
 }
 
 /**

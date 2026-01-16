@@ -45,8 +45,12 @@ export default class BattleScene extends Phaser.Scene {
   // LLM API for dynamic question generation
   private llmApi: LlmApi | null = null;
   private askedQuestions: string[] = [];
+  private recentlySeenIds: string[] = []; // Track question IDs to avoid duplicates
   private questionCache: QuizQuestion[] = [];
   private currentQuestionId: string | null = null; // Track DB question ID for marking answered
+  
+  // Run away button
+  private runAwayButton!: Phaser.GameObjects.Container;
 
   constructor() {
     super('BattleScene');
@@ -62,17 +66,39 @@ export default class BattleScene extends Phaser.Scene {
     
     // Initialize LLM API with token from registry
     const token = this.registry.get('authToken');
+    console.log('BattleScene.init() - Token present:', !!token);
     if (token) {
       this.llmApi = new LlmApi(token);
+      console.log('BattleScene.init() - LLM API initialized');
+    } else {
+      console.warn('BattleScene.init() - No auth token, LLM API not available');
     }
     
-    // Reset question tracking for new battle
-    this.askedQuestions = [];
+    // Load previously asked questions from registry (persist across battles)
+    this.askedQuestions = this.registry.get('askedQuestions') || [];
+    this.recentlySeenIds = this.registry.get('recentlySeenIds') || [];
     this.questionCache = [];
+  }
+  
+  /**
+   * Save asked questions and recently seen IDs to registry so they persist across battles
+   */
+  private saveAskedQuestions() {
+    this.registry.set('askedQuestions', this.askedQuestions);
+    // Keep only the last 20 seen IDs to avoid memory bloat but prevent recent repeats
+    if (this.recentlySeenIds.length > 20) {
+      this.recentlySeenIds = this.recentlySeenIds.slice(-20);
+    }
+    this.registry.set('recentlySeenIds', this.recentlySeenIds);
   }
 
   create() {
     console.log('BattleScene.create() called with enemy:', this.enemy);
+    
+    // Reset answer buttons array for fresh battle
+    this.answerButtons = [];
+    this.state = BattleState.INTRO;
+    
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     
@@ -147,6 +173,9 @@ export default class BattleScene extends Phaser.Scene {
     
     // Answer buttons
     this.createAnswerButtons();
+    
+    // Run Away button
+    this.createRunAwayButton();
     
     // Update HP bars
     this.updateHPBars();
@@ -231,6 +260,7 @@ export default class BattleScene extends Phaser.Scene {
       
       this.currentQuestion = question;
       this.askedQuestions.push(question.question);
+      this.saveAskedQuestions(); // Persist across battles
       
       this.state = BattleState.SHOWING_QUESTION;
       this.questionText.setText(this.currentQuestion.question);
@@ -253,7 +283,7 @@ export default class BattleScene extends Phaser.Scene {
   
   /**
    * Get the next question - tries LLM API first, falls back to static questions
-   * Anders is special - he ALWAYS uses his static CAPS questions!
+   * Anders, Lars Hugo, and Ole Jakob are special - they ALWAYS use their static questions!
    */
   private async getNextQuestion(): Promise<QuizQuestion | null> {
     // Reset questionId for each new question
@@ -265,15 +295,41 @@ export default class BattleScene extends Phaser.Scene {
       return this.getStaticQuestion();
     }
     
+    // LARS HUGO ALWAYS uses his cycling/running cap questions - no API fetch!
+    if (this.enemy.id === 'lars-hugo') {
+      console.log('LARS HUGO USES HIS CAP-THEMED ATHLETIC QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // OLE JAKOB ALWAYS uses his Arribatec company questions - no API fetch!
+    if (this.enemy.id === 'ole-jakob') {
+      console.log('OLE JAKOB USES HIS ARRIBATEC COMPANY QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // KRISTIANE ALWAYS uses her medical questions - no API fetch!
+    if (this.enemy.id === 'kristiane') {
+      console.log('KRISTIANE USES HER MEDICAL QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // FREDRIK ALWAYS uses his pop quiz questions - no API fetch!
+    if (this.enemy.id === 'fredrik') {
+      console.log('FREDRIK USES HIS POP QUIZ QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
     // Check cache first
     if (this.questionCache.length > 0) {
       return this.questionCache.shift()!;
     }
     
-    // Try to fetch from LLM API
+    // Try to fetch from LLM API (database questions)
+    console.log('getNextQuestion() - llmApi available:', !!this.llmApi);
     if (this.llmApi) {
       try {
-        console.log('Fetching AI-generated question for:', this.enemy.displayName);
+        console.log('Fetching database question for:', this.enemy.displayName, 'zone:', this.enemy.zone);
+        console.log('Recently seen IDs:', this.recentlySeenIds);
         const response = await this.llmApi.generateBattleQuiz({
           enemyId: this.enemy.id,
           enemyName: this.enemy.displayName,
@@ -281,15 +337,21 @@ export default class BattleScene extends Phaser.Scene {
           isBoss: this.enemy.isBoss,
           difficulty: this.enemy.difficulty,
           playerLevel: this.playerStats.level,
-          previousQuestions: this.askedQuestions
+          previousQuestions: this.askedQuestions,
+          recentlySeenIds: this.recentlySeenIds
         });
         
+        console.log('API response received:', response);
+        
         if (response && response.question) {
-          console.log('AI generated question:', response.question.question);
+          console.log('Using database question:', response.question.question);
           
-          // Store the question ID for tracking correct answers
+          // Store the question ID for tracking correct answers and recent views
           if (response.questionId) {
             this.currentQuestionId = response.questionId;
+            // Track this question ID as recently seen
+            this.recentlySeenIds.push(response.questionId);
+            this.saveAskedQuestions();
           }
           
           // Show taunt if available
@@ -299,10 +361,14 @@ export default class BattleScene extends Phaser.Scene {
           }
           
           return response.question;
+        } else {
+          console.warn('API response did not contain a question');
         }
       } catch (err) {
-        console.warn('LLM API failed, falling back to static questions:', err);
+        console.error('Database question API failed:', err);
       }
+    } else {
+      console.log('No LLM API available, using static questions');
     }
     
     // Fallback to static questions from enemy data
@@ -317,17 +383,42 @@ export default class BattleScene extends Phaser.Scene {
       return null;
     }
     
-    // Filter out already asked questions
-    const availableQuestions = this.enemy.questions.filter(
+    // Get the last asked question to avoid immediate repeats
+    const lastAskedQuestion = this.askedQuestions.length > 0 
+      ? this.askedQuestions[this.askedQuestions.length - 1] 
+      : null;
+    
+    // Filter out already asked questions (across all battles)
+    let availableQuestions = this.enemy.questions.filter(
       q => !this.askedQuestions.includes(q.question)
     );
     
     if (availableQuestions.length === 0) {
-      // All questions asked, reset and allow repeats
-      return this.enemy.questions[Math.floor(Math.random() * this.enemy.questions.length)];
+      // All questions for this enemy type have been asked
+      // Clear the asked questions for this enemy type to allow them again
+      console.log(`All ${this.enemy.questions.length} questions for ${this.enemy.displayName} have been asked. Resetting...`);
+      
+      // Remove this enemy's questions from the asked list to allow them again
+      this.askedQuestions = this.askedQuestions.filter(
+        q => !this.enemy.questions.some(eq => eq.question === q)
+      );
+      this.saveAskedQuestions();
+      
+      // After reset, all questions are available EXCEPT the last one asked (to avoid immediate repeat)
+      availableQuestions = this.enemy.questions.filter(
+        q => q.question !== lastAskedQuestion
+      );
+      
+      // If only 1 question exists, we have to allow it even if it was just asked
+      if (availableQuestions.length === 0) {
+        availableQuestions = this.enemy.questions;
+      }
     }
     
-    return availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+    // Pick a random question from available ones
+    const selectedQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+    
+    return selectedQuestion;
   }
   
   /**
@@ -344,6 +435,7 @@ export default class BattleScene extends Phaser.Scene {
     
     this.currentQuestion = question;
     this.askedQuestions.push(question.question);
+    this.saveAskedQuestions(); // Persist across battles
     
     this.state = BattleState.SHOWING_QUESTION;
     this.questionText.setText(this.currentQuestion.question);
@@ -538,6 +630,87 @@ export default class BattleScene extends Phaser.Scene {
       this.scene.start('OfficeScene', {
         spawnPosition: this.returnPosition,
         currentZone: this.returnZone
+      });
+    });
+  }
+  
+  private createRunAwayButton() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    // Create button background
+    const buttonBg = this.add.rectangle(0, 0, 120, 40, 0x660000, 0.9);
+    buttonBg.setStrokeStyle(2, 0xFF0000);
+    buttonBg.setInteractive({ useHandCursor: true });
+    
+    // Create button text
+    const buttonText = this.add.text(0, 0, '🏃 RUN AWAY', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    
+    // Create container and position it
+    this.runAwayButton = this.add.container(width - 80, 30, [buttonBg, buttonText]);
+    this.runAwayButton.setDepth(100);
+    
+    // Hover effects
+    buttonBg.on('pointerover', () => {
+      buttonBg.setFillStyle(0x990000, 1);
+    });
+    
+    buttonBg.on('pointerout', () => {
+      buttonBg.setFillStyle(0x660000, 0.9);
+    });
+    
+    // Click handler
+    buttonBg.on('pointerdown', () => {
+      this.runAway();
+    });
+  }
+  
+  private runAway() {
+    // Can only run away during certain states
+    if (this.state === BattleState.VICTORY || this.state === BattleState.DEFEAT) {
+      return; // Already ending
+    }
+    
+    this.state = BattleState.DEFEAT; // Prevent further actions
+    this.hideAnswerButtons();
+    this.runAwayButton.setVisible(false);
+    
+    this.showMessage('You ran away!');
+    
+    // Small gold penalty for running (10%)
+    const goldLost = Math.floor(this.playerStats.gold * 0.1);
+    if (goldLost > 0) {
+      this.playerStats.gold -= goldLost;
+      this.registry.set('playerStats', this.playerStats);
+    }
+    
+    this.time.delayedCall(1000, () => {
+      if (goldLost > 0) {
+        this.showMessage(`Escaped! Lost ${goldLost} gold in the panic.`);
+      } else {
+        this.showMessage('You escaped safely!');
+      }
+      
+      this.time.delayedCall(1500, () => {
+        // Return to map - enemy respawns (not marked as defeated)
+        // Offset spawn position to avoid landing on the same enemy
+        const safePosition = {
+          x: this.returnPosition.x + 60, // Move player 60px away
+          y: this.returnPosition.y + 60
+        };
+        
+        this.cameras.main.fadeOut(500, 0, 0, 0);
+        this.time.delayedCall(500, () => {
+          this.scene.start('OfficeScene', {
+            spawnPosition: safePosition,
+            currentZone: this.returnZone
+          });
+        });
       });
     });
   }

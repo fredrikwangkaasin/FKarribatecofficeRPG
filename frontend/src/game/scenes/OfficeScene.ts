@@ -30,8 +30,9 @@ export default class OfficeScene extends Phaser.Scene {
   }
 
   init(data: any) {
-    // Reset battle flag when scene initializes
+    // Reset movement and battle flags when scene initializes
     this.inBattle = false;
+    this.isMoving = false;
     
     // Restore position if returning from battle
     if (data.spawnPosition) {
@@ -252,7 +253,9 @@ export default class OfficeScene extends Phaser.Scene {
     // Update current zone
     this.updateCurrentZone();
     
-    // Check for random encounter
+    // Random encounters DISABLED - battles only trigger when touching visible enemies
+    // To re-enable random encounters, uncomment the code below:
+    /*
     if (this.inEncounterZone) {
       this.stepCount++;
       
@@ -268,6 +271,7 @@ export default class OfficeScene extends Phaser.Scene {
         }
       }
     }
+    */
   }
   
   private updateCurrentZone() {
@@ -307,6 +311,10 @@ export default class OfficeScene extends Phaser.Scene {
   }
   
   private triggerRandomEncounter() {
+    // Prevent triggering if already in battle
+    if (this.inBattle) return;
+    this.inBattle = true;
+    
     this.stepCount = 0;
     this.encounterThreshold = 10 + Phaser.Math.Between(-5, 5); // Reset threshold
     
@@ -314,6 +322,7 @@ export default class OfficeScene extends Phaser.Scene {
     if (this.currentZone === 'finance' || this.currentZone === 'hospitality' || this.currentZone === 'research') {
       enemy = getRandomEnemy(this.currentZone);
     } else {
+      this.inBattle = false; // Reset flag if no encounter
       return; // No encounters in other zones
     }
     
@@ -772,6 +781,18 @@ export default class OfficeScene extends Phaser.Scene {
     // Spawn ANDERS in the lobby/corridor area - he's a special boss!
     this.spawnAnders();
     
+    // Spawn Lars Hugo - the athletic cap enthusiast!
+    this.spawnLarsHugo();
+    
+    // Spawn Ole Jakob - the professional businessman who knows Arribatec!
+    this.spawnOleJakob();
+    
+    // Spawn Kristiane - the medical professional with the lab coat!
+    this.spawnKristiane();
+    
+    // Spawn Fredrik - the drummer who loves pop quizzes!
+    this.spawnFredrik();
+    
     console.log('Total enemies spawned:', this.enemies.length);
   }
   
@@ -781,8 +802,8 @@ export default class OfficeScene extends Phaser.Scene {
     enemy.setDepth(5);
     
     // Make collision box very small - must touch enemy center to trigger battle
-    enemy.body!.setSize(20, 20); // Tiny hitbox for precise touch
-    enemy.body!.setOffset(22, 22); // Center the hitbox on the sprite
+    enemy.body!.setSize(12, 12); // Tiny hitbox for precise touch
+    enemy.body!.setOffset(26, 26); // Center the hitbox on the sprite
     
     // Make enemy stationary (immovable)
     enemy.setImmovable(true);
@@ -790,25 +811,23 @@ export default class OfficeScene extends Phaser.Scene {
     // Store zone info on enemy
     (enemy as any).zone = zoneName;
     
-    // Enemy stands still - no patrol behavior
-    // Just add a subtle idle animation (breathing effect)
-    this.tweens.add({
-      targets: enemy,
-      scaleX: 0.82,
-      scaleY: 0.78,
-      duration: 1500,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
+    // Enemy stands still - no patrol behavior (removed breathing animation that could affect hitbox)
     
     this.enemies.push(enemy);
     
-    // Collision with player triggers battle
+    // Collision with player triggers battle - use process callback to validate real overlap
     this.physics.add.overlap(this.player, enemy, () => {
       console.log('Enemy collision detected!');
       this.triggerEnemyEncounter(enemy);
-    }, undefined, this);
+    }, (player, enemySprite) => {
+      // Only trigger if physics bodies are actually overlapping
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
   }
   
   private spawnAnders() {
@@ -822,9 +841,9 @@ export default class OfficeScene extends Phaser.Scene {
     anders.setDepth(6);
     anders.setTint(0xFF0000); // Red tint to make Anders stand out
     
-    // Larger hitbox for Anders - he's hard to avoid!
-    anders.body!.setSize(30, 30);
-    anders.body!.setOffset(17, 17);
+    // Smaller hitbox for Anders - still need to touch him directly
+    anders.body!.setSize(20, 20);
+    anders.body!.setOffset(22, 22);
     
     anders.setImmovable(true);
     
@@ -832,18 +851,7 @@ export default class OfficeScene extends Phaser.Scene {
     (anders as any).zone = 'lobby';
     (anders as any).isAnders = true;
     
-    // Anders has a more aggressive breathing animation
-    this.tweens.add({
-      targets: anders,
-      scaleX: 1.3,
-      scaleY: 1.1,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
-    
-    // Add pulsing red glow effect
+    // Add pulsing red glow effect (alpha only, no scale changes)
     this.tweens.add({
       targets: anders,
       alpha: 0.7,
@@ -855,11 +863,18 @@ export default class OfficeScene extends Phaser.Scene {
     
     this.enemies.push(anders);
     
-    // Collision with player triggers Anders battle
+    // Collision with player triggers Anders battle - validate actual overlap
     this.physics.add.overlap(this.player, anders, () => {
       console.log('ANDERS ENCOUNTER!');
       this.triggerEnemyEncounter(anders);
-    }, undefined, this);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
     
     // Add a warning label near Anders
     this.add.text(andersX, andersY - 50, '⚠️ ANDERS', {
@@ -872,13 +887,201 @@ export default class OfficeScene extends Phaser.Scene {
     }).setDepth(7).setOrigin(0.5);
   }
   
+  private spawnLarsHugo() {
+    // Lars Hugo spawns in the corridor on the right side - jogging between zones!
+    const larsX = 850;
+    const larsY = 500;
+    
+    const lars = this.physics.add.sprite(larsX, larsY, 'enemy-lars-hugo');
+    lars.setScale(1.0);
+    lars.setDepth(6);
+    
+    // Hitbox for Lars Hugo
+    lars.body!.setSize(16, 16);
+    lars.body!.setOffset(24, 26);
+    
+    lars.setImmovable(true);
+    
+    // Store zone info
+    (lars as any).zone = 'lobby';
+    (lars as any).isLarsHugo = true;
+    
+    // Lars Hugo stands still (removed movement animation that could cause phantom collisions)
+    
+    this.enemies.push(lars);
+    
+    // Collision with player triggers Lars Hugo battle - validate actual overlap
+    this.physics.add.overlap(this.player, lars, () => {
+      console.log('LARS HUGO ENCOUNTER!');
+      this.triggerEnemyEncounter(lars);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a sporty label near Lars Hugo
+    this.add.text(larsX, larsY - 45, '🏃 Lars Hugo', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#228B22',
+      fontStyle: 'bold',
+      backgroundColor: '#000000',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
+  private spawnOleJakob() {
+    // Ole Jakob spawns near the finance zone entrance - he's a professional businessman!
+    const oleJakobX = 1100;
+    const oleJakobY = 750;
+    
+    const oleJakob = this.physics.add.sprite(oleJakobX, oleJakobY, 'enemy-ole-jakob');
+    oleJakob.setScale(1.0);
+    oleJakob.setDepth(6);
+    
+    // Hitbox for Ole Jakob
+    oleJakob.body!.setSize(16, 16);
+    oleJakob.body!.setOffset(24, 24);
+    
+    oleJakob.setImmovable(true);
+    
+    // Store zone info
+    (oleJakob as any).zone = 'lobby';
+    (oleJakob as any).isOleJakob = true;
+    
+    // Ole Jakob stands professionally still (no animations that could affect collision)
+    
+    this.enemies.push(oleJakob);
+    
+    // Collision with player triggers Ole Jakob battle - validate actual overlap
+    this.physics.add.overlap(this.player, oleJakob, () => {
+      console.log('OLE JAKOB ENCOUNTER!');
+      this.triggerEnemyEncounter(oleJakob);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a professional label near Ole Jakob
+    this.add.text(oleJakobX, oleJakobY - 45, '👔 Ole Jakob', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#1a365d',
+      fontStyle: 'bold',
+      backgroundColor: '#FFD700',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
+  private spawnKristiane() {
+    // Kristiane spawns near the research zone - she's a medical professional!
+    const kristianeX = 350;
+    const kristianeY = 350;
+    
+    const kristiane = this.physics.add.sprite(kristianeX, kristianeY, 'enemy-kristiane');
+    kristiane.setScale(1.0);
+    kristiane.setDepth(6);
+    
+    // Hitbox for Kristiane
+    kristiane.body!.setSize(16, 16);
+    kristiane.body!.setOffset(24, 24);
+    
+    kristiane.setImmovable(true);
+    
+    // Store zone info
+    (kristiane as any).zone = 'lobby';
+    (kristiane as any).isKristiane = true;
+    
+    this.enemies.push(kristiane);
+    
+    // Collision with player triggers Kristiane battle - validate actual overlap
+    this.physics.add.overlap(this.player, kristiane, () => {
+      console.log('KRISTIANE ENCOUNTER!');
+      this.triggerEnemyEncounter(kristiane);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a medical label near Kristiane
+    this.add.text(kristianeX, kristianeY - 45, '🥼 Kristiane', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      backgroundColor: '#2E8B57',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
+  private spawnFredrik() {
+    // Fredrik spawns in the corridor area - he's a drummer who loves pop quizzes!
+    const fredrikX = 650;
+    const fredrikY = 450;
+    
+    const fredrik = this.physics.add.sprite(fredrikX, fredrikY, 'enemy-fredrik');
+    fredrik.setScale(1.0);
+    fredrik.setDepth(6);
+    
+    // Hitbox for Fredrik
+    fredrik.body!.setSize(16, 16);
+    fredrik.body!.setOffset(24, 24);
+    
+    fredrik.setImmovable(true);
+    
+    // Store zone info
+    (fredrik as any).zone = 'lobby';
+    (fredrik as any).isFredrik = true;
+    
+    this.enemies.push(fredrik);
+    
+    // Collision with player triggers Fredrik battle - validate actual overlap
+    this.physics.add.overlap(this.player, fredrik, () => {
+      console.log('FREDRIK ENCOUNTER!');
+      this.triggerEnemyEncounter(fredrik);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a rock label near Fredrik
+    this.add.text(fredrikX, fredrikY - 45, '🥁 Fredrik', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      backgroundColor: '#8B0000',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
   private triggerEnemyEncounter(enemySprite: Phaser.Physics.Arcade.Sprite) {
     // Prevent multiple triggers
     if (this.inBattle) return;
     this.inBattle = true;
     
-    // Check if this is Anders
+    // Check if this is Anders, Lars Hugo, Ole Jakob, Kristiane, or Fredrik
     const isAnders = (enemySprite as any).isAnders === true;
+    const isLarsHugo = (enemySprite as any).isLarsHugo === true;
+    const isOleJakob = (enemySprite as any).isOleJakob === true;
+    const isKristiane = (enemySprite as any).isKristiane === true;
+    const isFredrik = (enemySprite as any).isFredrik === true;
     const enemyZone = (enemySprite as any).zone || this.currentZone;
     
     // Remove the enemy sprite
@@ -894,6 +1097,22 @@ export default class OfficeScene extends Phaser.Scene {
       // Use Anders from the ENEMIES data - he asks questions in CAPS!
       enemy = ENEMIES['anders'];
       console.log('ANDERS BATTLE! HE WILL ASK QUESTIONS IN CAPS!');
+    } else if (isLarsHugo) {
+      // Use Lars Hugo from the ENEMIES data - cycling/running cap questions!
+      enemy = ENEMIES['lars-hugo'];
+      console.log('LARS HUGO BATTLE! He loves his cap and athletics!');
+    } else if (isOleJakob) {
+      // Use Ole Jakob from the ENEMIES data - Arribatec company questions!
+      enemy = ENEMIES['ole-jakob'];
+      console.log('OLE JAKOB BATTLE! He knows everything about Arribatec!');
+    } else if (isKristiane) {
+      // Use Kristiane from the ENEMIES data - medical questions!
+      enemy = ENEMIES['kristiane'];
+      console.log('KRISTIANE BATTLE! She asks medical questions!');
+    } else if (isFredrik) {
+      // Use Fredrik from the ENEMIES data - pop quiz questions!
+      enemy = ENEMIES['fredrik'];
+      console.log('FREDRIK BATTLE! He asks pop quiz questions!');
     } else {
       // Trigger battle with random enemy from the enemy's zone
       enemy = getRandomEnemy(enemyZone as 'finance' | 'hospitality' | 'research' | 'lobby');

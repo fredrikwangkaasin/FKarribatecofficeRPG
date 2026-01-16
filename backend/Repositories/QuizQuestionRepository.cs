@@ -12,7 +12,7 @@ public interface IQuizQuestionRepository
     /// Get a random unanswered question for a user in a specific zone
     /// </summary>
     Task<QuizQuestionEntity?> GetRandomUnansweredQuestionAsync(
-        string tenantId, string userId, string zone, int difficulty);
+        string tenantId, string userId, string zone, int difficulty, IEnumerable<Guid>? recentlySeenIds = null);
     
     /// <summary>
     /// Mark a question as answered by a user
@@ -69,36 +69,89 @@ public class QuizQuestionRepository : IQuizQuestionRepository
     }
 
     public async Task<QuizQuestionEntity?> GetRandomUnansweredQuestionAsync(
-        string tenantId, string userId, string zone, int difficulty)
+        string tenantId, string userId, string zone, int difficulty, IEnumerable<Guid>? recentlySeenIds = null)
     {
         try
         {
             using var connection = await _dbService.CreateProductConnectionAsync();
 
-            // Get a random question that the user hasn't answered correctly yet
-            var sql = @"
-                SELECT TOP 1 q.*
-                FROM QuizQuestions q
-                WHERE q.Zone = @Zone 
-                  AND q.Difficulty <= @Difficulty
-                  AND q.IsActive = 1
-                  AND q.Id NOT IN (
-                      SELECT ua.QuestionId 
-                      FROM UserAnsweredQuestions ua 
-                      WHERE ua.TenantId = @TenantId 
-                        AND ua.UserId = @UserId 
-                        AND ua.AnsweredCorrectly = 1
-                  )
-                ORDER BY NEWID()";
+            var recentIds = recentlySeenIds?.ToList() ?? new List<Guid>();
+            
+            // Get a random question that:
+            // 1. User hasn't answered correctly yet
+            // 2. Wasn't recently seen in this session (to avoid immediate repeats)
+            string sql;
+            object parameters;
 
-            var question = await connection.QueryFirstOrDefaultAsync<QuizQuestionEntity>(
-                sql, new { TenantId = tenantId, UserId = userId, Zone = zone, Difficulty = difficulty });
+            if (recentIds.Count > 0)
+            {
+                sql = @"
+                    SELECT TOP 1 q.*
+                    FROM QuizQuestions q
+                    WHERE q.Zone = @Zone 
+                      AND q.Difficulty <= @Difficulty
+                      AND q.IsActive = 1
+                      AND q.Id NOT IN @RecentIds
+                      AND q.Id NOT IN (
+                          SELECT ua.QuestionId 
+                          FROM UserAnsweredQuestions ua 
+                          WHERE ua.TenantId = @TenantId 
+                            AND ua.UserId = @UserId 
+                            AND ua.AnsweredCorrectly = 1
+                      )
+                    ORDER BY NEWID()";
+                parameters = new { TenantId = tenantId, UserId = userId, Zone = zone, Difficulty = difficulty, RecentIds = recentIds };
+            }
+            else
+            {
+                sql = @"
+                    SELECT TOP 1 q.*
+                    FROM QuizQuestions q
+                    WHERE q.Zone = @Zone 
+                      AND q.Difficulty <= @Difficulty
+                      AND q.IsActive = 1
+                      AND q.Id NOT IN (
+                          SELECT ua.QuestionId 
+                          FROM UserAnsweredQuestions ua 
+                          WHERE ua.TenantId = @TenantId 
+                            AND ua.UserId = @UserId 
+                            AND ua.AnsweredCorrectly = 1
+                      )
+                    ORDER BY NEWID()";
+                parameters = new { TenantId = tenantId, UserId = userId, Zone = zone, Difficulty = difficulty };
+            }
+
+            var question = await connection.QueryFirstOrDefaultAsync<QuizQuestionEntity>(sql, parameters);
 
             if (question == null)
             {
-                _logger.LogWarning("No unanswered questions found for user {UserId} in zone {Zone}", userId, zone);
+                _logger.LogWarning("No unanswered questions found for user {UserId} in zone {Zone}, trying without recent filter", userId, zone);
                 
-                // Fallback: get any random question from the zone (even if answered before)
+                // Try again without the recent filter (but still exclude correctly answered)
+                sql = @"
+                    SELECT TOP 1 q.*
+                    FROM QuizQuestions q
+                    WHERE q.Zone = @Zone 
+                      AND q.Difficulty <= @Difficulty
+                      AND q.IsActive = 1
+                      AND q.Id NOT IN (
+                          SELECT ua.QuestionId 
+                          FROM UserAnsweredQuestions ua 
+                          WHERE ua.TenantId = @TenantId 
+                            AND ua.UserId = @UserId 
+                            AND ua.AnsweredCorrectly = 1
+                      )
+                    ORDER BY NEWID()";
+                
+                question = await connection.QueryFirstOrDefaultAsync<QuizQuestionEntity>(
+                    sql, new { TenantId = tenantId, UserId = userId, Zone = zone, Difficulty = difficulty });
+            }
+
+            if (question == null)
+            {
+                _logger.LogWarning("All questions answered correctly for user {UserId} in zone {Zone}, recycling questions", userId, zone);
+                
+                // Fallback: get any random question from the zone (user has answered all correctly)
                 var fallbackSql = @"
                     SELECT TOP 1 q.*
                     FROM QuizQuestions q

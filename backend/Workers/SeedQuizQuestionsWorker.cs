@@ -150,9 +150,10 @@ The correctIndex is 0-3 indicating which answer is correct.";
 
         try
         {
+            var modelName = llmConnection.DefaultModel ?? "gpt-4";
             var chatRequest = new
             {
-                model = llmConnection.DefaultModel ?? "gpt-4",
+                model = modelName,
                 messages = new[]
                 {
                     new { role = "system", content = "You are a quiz question generator for an office RPG game. Always respond with valid JSON only." },
@@ -165,10 +166,18 @@ The correctIndex is 0-3 indicating which answer is correct.";
             var httpClient = _httpClientFactory.CreateClient();
             var endpoint = BuildEndpoint(llmConnection);
             
+            _logger.LogDebug("Calling LLM endpoint: {Endpoint} with model: {Model}", endpoint, modelName);
+            
             ConfigureHttpClient(httpClient, llmConnection);
 
             var response = await httpClient.PostAsJsonAsync(endpoint, chatRequest, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("LLM API returned {StatusCode}: {Error}", response.StatusCode, errorContent);
+                return GenerateFallbackQuestion(zone, difficulty);
+            }
 
             var result = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
             var content = result.GetProperty("choices")[0]
@@ -207,7 +216,7 @@ The correctIndex is 0-3 indicating which answer is correct.";
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "LLM generation failed, using fallback");
+            _logger.LogWarning(ex, "LLM generation failed: {ErrorMessage}. Using fallback question.", ex.Message);
             return GenerateFallbackQuestion(zone, difficulty);
         }
     }
