@@ -34,6 +34,7 @@ export default class BattleScene extends Phaser.Scene {
   
   private returnPosition!: { x: number; y: number };
   private returnZone!: string;
+  private returnScene!: string; // Which scene to return to (OfficeScene or KiellandScene)
   
   private messageText!: Phaser.GameObjects.Text;
   private questionText!: Phaser.GameObjects.Text;
@@ -51,6 +52,15 @@ export default class BattleScene extends Phaser.Scene {
   
   // Run away button
   private runAwayButton!: Phaser.GameObjects.Container;
+  
+  // Track if this battle ended in victory (for defeated enemies tracking)
+  private wasVictory: boolean = false;
+  
+  // KiellandScene enemies that need to be defeated for the final victory
+  private readonly KIELLAND_ENEMIES = [
+    'Dr. Kristiane', 'Fredrik', 'Henrik the Ashen One', 'Nils the Good Boy',
+    'Tufte', 'Mats', 'Anya', 'Martine'
+  ];
 
   constructor() {
     super('BattleScene');
@@ -61,6 +71,8 @@ export default class BattleScene extends Phaser.Scene {
     this.enemyHP = this.enemy.maxHP;
     this.returnPosition = data.returnPosition;
     this.returnZone = data.currentZone;
+    this.returnScene = data.returnScene || 'OfficeScene'; // Default to OfficeScene for backward compatibility
+    this.wasVictory = false; // Reset victory flag for new battle
     
     this.playerStats = { ...this.registry.get('playerStats') };
     
@@ -191,7 +203,7 @@ export default class BattleScene extends Phaser.Scene {
     this.showMessage(this.enemy.introText);
     this.questionText.setText('');
     
-    this.time.delayedCall(2500, () => {
+    this.time.delayedCall(4500, () => {
       console.log('BattleScene - Showing first question');
       this.askQuestion();
     });
@@ -316,6 +328,48 @@ export default class BattleScene extends Phaser.Scene {
     // FREDRIK ALWAYS uses his pop quiz questions - no API fetch!
     if (this.enemy.id === 'fredrik') {
       console.log('FREDRIK USES HIS POP QUIZ QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // HENRIK ALWAYS uses his Dark Souls questions - no API fetch!
+    if (this.enemy.id === 'henrik') {
+      console.log('HENRIK USES HIS DARK SOULS QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // NILS ALWAYS uses his dog language questions - no API fetch!
+    if (this.enemy.id === 'nils') {
+      console.log('NILS BARKS HIS QUESTIONS! WOOF WOOF!');
+      return this.getStaticQuestion();
+    }
+    
+    // TUFTE ALWAYS uses his Jens Stoltenberg questions - no API fetch!
+    if (this.enemy.id === 'tufte') {
+      console.log('TUFTE USES HIS JENS STOLTENBERG QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // MATS ALWAYS uses his technology questions - no API fetch!
+    if (this.enemy.id === 'mats') {
+      console.log('MATS USES HIS TECH QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // ANYA ALWAYS uses her bartending/cocktail questions - no API fetch!
+    if (this.enemy.id === 'anya') {
+      console.log('ANYA USES HER BARTENDING QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // MARTINE ALWAYS uses her Twilight questions - no API fetch!
+    if (this.enemy.id === 'martine') {
+      console.log('MARTINE USES HER TWILIGHT QUESTIONS!');
+      return this.getStaticQuestion();
+    }
+    
+    // ANNA ALWAYS uses her Danish questions - no API fetch!
+    if (this.enemy.id === 'anna') {
+      console.log('ANNA USES HER DANISH QUESTIONS!');
       return this.getStaticQuestion();
     }
     
@@ -469,7 +523,9 @@ export default class BattleScene extends Phaser.Scene {
     this.state = BattleState.ANSWER_RESULT;
     this.hideAnswerButtons();
     
-    const isCorrect = answerIndex === this.currentQuestion.correctIndex;
+    // NILS special case - all answers are correct because he's a good boy!
+    const isNils = this.enemy.id === 'nils';
+    const isCorrect = isNils ? true : (answerIndex === this.currentQuestion.correctIndex);
     
     // Mark question as answered in the database (async, don't wait)
     if (this.currentQuestionId && this.llmApi) {
@@ -479,7 +535,10 @@ export default class BattleScene extends Phaser.Scene {
     
     if (isCorrect) {
       // Correct answer - damage enemy
-      this.showMessage('Correct! Your knowledge prevails!');
+      const message = isNils 
+        ? '*happy tail wag* WOOF! Good human!' 
+        : 'Correct! Your knowledge prevails!';
+      this.showMessage(message);
       
       const damage = 30;
       this.enemyHP -= damage;
@@ -547,6 +606,7 @@ export default class BattleScene extends Phaser.Scene {
   
   private victory() {
     this.state = BattleState.VICTORY;
+    this.wasVictory = true; // Mark this as a victory
     this.hideAnswerButtons();
     
     // Enemy defeated animation
@@ -566,13 +626,231 @@ export default class BattleScene extends Phaser.Scene {
       
       this.showMessage(`Victory! Gained ${this.enemy.expReward} XP and ${this.enemy.goldReward} gold!`);
       
-      // Check for level up
+      // Mark this enemy as defeated in registry (only on victory, not defeat)
+      const defeatedEnemies = this.registry.get('defeatedEnemies') || [];
+      if (!defeatedEnemies.includes(this.enemy.displayName)) {
+        defeatedEnemies.push(this.enemy.displayName);
+        this.registry.set('defeatedEnemies', defeatedEnemies);
+      }
+      
+      // Check if all KiellandScene enemies have been defeated
+      if (this.returnScene === 'KiellandScene' && this.checkAllKiellandEnemiesDefeated(defeatedEnemies)) {
+        // Show congratulations popup before ending battle
+        this.time.delayedCall(2000, () => this.showStoltenbergCongratulations());
+      } else {
+        // Check for level up
+        if (shouldLevelUp(this.playerStats)) {
+          this.time.delayedCall(2000, () => this.handleLevelUp());
+        } else {
+          this.registry.set('playerStats', this.playerStats);
+          this.time.delayedCall(2000, () => this.endBattle());
+        }
+      }
+    });
+  }
+  
+  private checkAllKiellandEnemiesDefeated(defeatedEnemies: string[]): boolean {
+    return this.KIELLAND_ENEMIES.every(enemy => defeatedEnemies.includes(enemy));
+  }
+  
+  private showStoltenbergCongratulations() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    // Create dark overlay
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.85);
+    overlay.setDepth(200);
+    
+    // Animated sparkle/confetti effect
+    const particles = this.add.particles(width / 2, height / 2, 'particle', {
+      speed: { min: 100, max: 200 },
+      scale: { start: 0.5, end: 0 },
+      lifespan: 3000,
+      quantity: 2,
+      emitting: true,
+      tint: [0xFFD700, 0xFFA500, 0xFF6347, 0x00CED1, 0x9370DB]
+    });
+    particles.setDepth(201);
+    
+    // Create congratulations banner
+    const banner = this.add.rectangle(width / 2, 80, 600, 60, 0x1a5276, 0.95);
+    banner.setStrokeStyle(4, 0xFFD700);
+    banner.setDepth(202);
+    
+    const titleText = this.add.text(width / 2, 80, '🎉 CONGRATULATIONS! 🎉', {
+      fontSize: '32px',
+      fontFamily: 'monospace',
+      color: '#FFD700',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Create Stoltenberg portrait with golden frame
+    const portraitFrame = this.add.rectangle(width / 2, height / 2 - 30, 148, 148, 0xFFD700);
+    portraitFrame.setStrokeStyle(4, 0xDAA520);
+    portraitFrame.setDepth(202);
+    
+    const portrait = this.add.image(width / 2, height / 2 - 30, 'stoltenberg-portrait');
+    portrait.setScale(1);
+    portrait.setDepth(203);
+    
+    // Name label below portrait
+    const nameLabel = this.add.text(width / 2, height / 2 + 40, '🇳🇴 Jens Stoltenberg greets you! 🇳🇴', {
+      fontSize: '16px',
+      fontFamily: 'Georgia, serif',
+      color: '#FFD700',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Subtle animation for portrait
+    this.tweens.add({
+      targets: portrait,
+      scale: 1.05,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    
+    // Speech bubble with congratulations message
+    const bubbleWidth = 450;
+    const bubbleHeight = 100;
+    const bubbleX = width / 2;
+    const bubbleY = height / 2 + 100;
+    
+    // Speech bubble background
+    const bubble = this.add.rectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 0xFFFFFF, 0.95);
+    bubble.setStrokeStyle(3, 0x1a5276);
+    bubble.setDepth(202);
+    
+    // Speech bubble pointer
+    const pointer = this.add.triangle(
+      bubbleX, bubbleY - bubbleHeight / 2 - 10,
+      0, 20, 15, 0, 30, 20,
+      0xFFFFFF
+    ).setDepth(202);
+    
+    // Congratulations message from Jens
+    const messageText = this.add.text(bubbleX, bubbleY, 
+      '"Gratulerer! You have mastered every challenge\nand proven yourself worthy. Norway is proud!\nWelcome to the elite ranks!"', {
+      fontSize: '16px',
+      fontFamily: 'Georgia, serif',
+      color: '#1a5276',
+      fontStyle: 'italic',
+      align: 'center',
+      lineSpacing: 6
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Signature
+    const signature = this.add.text(bubbleX + 120, bubbleY + 50, '— Jens Stoltenberg', {
+      fontSize: '14px',
+      fontFamily: 'Georgia, serif',
+      color: '#2c3e50',
+      fontStyle: 'bold italic'
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Stats summary
+    const stats = this.registry.get('playerStats');
+    const statsText = this.add.text(width / 2, height - 100, 
+      `Final Stats: Level ${stats.level} | XP: ${stats.exp} | Gold: ${stats.gold}`, {
+      fontSize: '18px',
+      fontFamily: 'monospace',
+      color: '#FFD700'
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Continue button
+    const continueBtn = this.add.rectangle(width / 2, height - 50, 200, 45, 0x27ae60, 0.9);
+    continueBtn.setStrokeStyle(3, 0xFFD700);
+    continueBtn.setInteractive({ useHandCursor: true });
+    continueBtn.setDepth(202);
+    
+    const continueText = this.add.text(width / 2, height - 50, '✨ CONTINUE ✨', {
+      fontSize: '18px',
+      fontFamily: 'monospace',
+      color: '#FFFFFF',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(203);
+    
+    // Hover effects
+    continueBtn.on('pointerover', () => {
+      continueBtn.setFillStyle(0x2ecc71, 1);
+    });
+    continueBtn.on('pointerout', () => {
+      continueBtn.setFillStyle(0x27ae60, 0.9);
+    });
+    
+    // Click to continue - process level up or end battle
+    continueBtn.on('pointerdown', () => {
+      particles.destroy();
       if (shouldLevelUp(this.playerStats)) {
-        this.time.delayedCall(2000, () => this.handleLevelUp());
+        // Clean up popup elements
+        overlay.destroy();
+        banner.destroy();
+        titleText.destroy();
+        portraitFrame.destroy();
+        portrait.destroy();
+        nameLabel.destroy();
+        bubble.destroy();
+        pointer.destroy();
+        messageText.destroy();
+        signature.destroy();
+        statsText.destroy();
+        continueBtn.destroy();
+        continueText.destroy();
+        
+        this.handleLevelUp();
       } else {
         this.registry.set('playerStats', this.playerStats);
-        this.time.delayedCall(2000, () => this.endBattle());
+        this.endBattle();
       }
+    });
+    
+    // Entrance animations
+    titleText.setAlpha(0);
+    portrait.setAlpha(0);
+    portraitFrame.setAlpha(0);
+    nameLabel.setAlpha(0);
+    bubble.setAlpha(0);
+    pointer.setAlpha(0);
+    messageText.setAlpha(0);
+    signature.setAlpha(0);
+    statsText.setAlpha(0);
+    continueBtn.setAlpha(0);
+    continueText.setAlpha(0);
+    
+    this.tweens.add({
+      targets: [titleText, banner],
+      alpha: 1,
+      y: '-=20',
+      duration: 500,
+      ease: 'Back.out'
+    });
+    
+    this.time.delayedCall(300, () => {
+      this.tweens.add({
+        targets: [portrait, portraitFrame, nameLabel],
+        alpha: 1,
+        scale: { from: 0.5, to: 1 },
+        duration: 600,
+        ease: 'Back.out'
+      });
+    });
+    
+    this.time.delayedCall(600, () => {
+      this.tweens.add({
+        targets: [bubble, pointer, messageText, signature],
+        alpha: 1,
+        duration: 400,
+        ease: 'Power2'
+      });
+    });
+    
+    this.time.delayedCall(1000, () => {
+      this.tweens.add({
+        targets: [statsText, continueBtn, continueText],
+        alpha: 1,
+        duration: 400,
+        ease: 'Power2'
+      });
     });
   }
   
@@ -617,17 +895,15 @@ export default class BattleScene extends Phaser.Scene {
   }
   
   private endBattle() {
-    console.log('BattleScene.endBattle() - Transitioning back to OfficeScene');
+    console.log('BattleScene.endBattle() - Transitioning back to', this.returnScene, '- Victory:', this.wasVictory);
     this.cameras.main.fadeOut(500, 0, 0, 0);
     this.time.delayedCall(500, () => {
-      console.log('BattleScene - Starting OfficeScene with position:', this.returnPosition);
-      // Mark this enemy as defeated in registry
-      const defeatedEnemies = this.registry.get('defeatedEnemies') || [];
-      defeatedEnemies.push(this.enemy.displayName);
-      this.registry.set('defeatedEnemies', defeatedEnemies);
+      console.log('BattleScene - Starting', this.returnScene, 'with position:', this.returnPosition);
+      // Note: Defeated enemies are now tracked in victory() method, not here
+      // This prevents marking enemies as defeated when player loses or runs away
       
-      // Start OfficeScene with spawn position (scene.start replaces current scene)
-      this.scene.start('OfficeScene', {
+      // Start the appropriate scene with spawn position
+      this.scene.start(this.returnScene, {
         spawnPosition: this.returnPosition,
         currentZone: this.returnZone
       });
@@ -706,7 +982,7 @@ export default class BattleScene extends Phaser.Scene {
         
         this.cameras.main.fadeOut(500, 0, 0, 0);
         this.time.delayedCall(500, () => {
-          this.scene.start('OfficeScene', {
+          this.scene.start(this.returnScene, {
             spawnPosition: safePosition,
             currentZone: this.returnZone
           });

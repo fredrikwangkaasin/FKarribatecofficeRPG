@@ -1281,6 +1281,859 @@ export const ENEMIES: Record<string, EnemyData> = {
         correctIndex: 2
       }
     ]
+  },
+  
+  'henrik': {
+    id: 'henrik',
+    displayName: 'Henrik the Ashen One',
+    zone: 'hospitality',
+    isBoss: false,
+    maxHP: 90,
+    difficulty: 6,
+    expReward: 45,
+    goldReward: 35,
+    spriteKey: 'enemy-henrik',
+    introText: 'Henrik adjusts his purple scarf and gives you a knowing look. "Prepare yourself, Chosen Undead..."',
+    defeatText: 'Henrik raises his Estus Flask in salute. "Well fought! Praise the Sun!"',
+    questions: [
+      {
+        question: 'In Dark Souls, what is the name of the first boss you encounter in the Undead Asylum?',
+        answers: [
+          'Taurus Demon',
+          'Asylum Demon',
+          'Capra Demon',
+          'Bell Gargoyles'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What phrase appears on screen when you die in Dark Souls?',
+        answers: [
+          'GAME OVER',
+          'YOU DIED',
+          'WASTED',
+          'MISSION FAILED'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the name of the healing item in Dark Souls?',
+        answers: [
+          'Health Potion',
+          'Phoenix Down',
+          'Estus Flask',
+          'Divine Blessing'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'In Dark Souls 3, what is the name of the final boss?',
+        answers: [
+          'Gwyn, Lord of Cinder',
+          'Soul of Cinder',
+          'Nameless King',
+          'Slave Knight Gael'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the currency used to level up in Dark Souls?',
+        answers: [
+          'Gold',
+          'Blood Echoes',
+          'Souls',
+          'Runes'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'In Dark Souls, what is the famous location where Ornstein and Smough are fought?',
+        answers: [
+          'The Kiln of the First Flame',
+          'Anor Londo',
+          'Blighttown',
+          'Sen\'s Fortress'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the name of the onion-shaped knight NPC in Dark Souls?',
+        answers: [
+          'Solaire of Astora',
+          'Patches',
+          'Siegmeyer of Catarina',
+          'Oscar of Astora'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'In Dark Souls, what gesture do you need to join Warrior of Sunlight covenant?',
+        answers: [
+          'Point Forward',
+          'Bow',
+          'Praise the Sun',
+          'Wave'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'Which Dark Souls boss is known for fighting alongside a giant wolf?',
+        answers: [
+          'Artorias the Abysswalker',
+          'Sif, the Great Grey Wolf',
+          'Dragonslayer Ornstein',
+          'Knight Artorias'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the starting class in Dark Souls that begins at level 1 with no equipment?',
+        answers: [
+          'Pyromancer',
+          'Wanderer',
+          'Deprived',
+          'Cleric'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'In Dark Souls 3, what is the name of the first area you explore?',
+        answers: [
+          'Firelink Shrine',
+          'Cemetery of Ash',
+          'High Wall of Lothric',
+          'Undead Settlement'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What NPC in Dark Souls is famous for saying "Praise the Sun!"?',
+        answers: [
+          'Siegmeyer',
+          'Patches',
+          'Solaire of Astora',
+          'Andre the Blacksmith'
+        ],
+        correctIndex: 2
+      }
+    ]
+  },
+  
+  'nils': {
+    id: 'nils',
+    displayName: 'Nils the Good Boy',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 50,
+    difficulty: 3,
+    expReward: 30,
+    goldReward: 20,
+    spriteKey: 'enemy-nils',
+    introText: '*wags tail excitedly* WOOF WOOF! Bark bark bark! *tilts head*',
+    defeatText: '*rolls over for belly rubs* Woof! Arf arf! *happy panting*',
+    questions: [
+      {
+        question: 'Woof woof bark bark? Arf arf woof!',
+        answers: [
+          'Woof!',
+          'Bark bark!',
+          'Arf arf arf!',
+          '*tail wag*'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'Bark bark bark? Woof woof arf?',
+        answers: [
+          'Bark!',
+          'Woof woof!',
+          'Arf!',
+          '*happy panting*'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Arf arf woof? Bark bark woof woof?',
+        answers: [
+          '*belly rub request*',
+          'Woof bark!',
+          'Arf woof bark!',
+          'Bark bark bark!'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: '*tilts head* Woof? Bark bark arf woof?',
+        answers: [
+          'Woof woof woof!',
+          '*ear scratch*',
+          'Bark arf bark!',
+          'Arf arf!'
+        ],
+        correctIndex: 3
+      },
+      {
+        question: 'Bark! Woof woof bark arf? *pants happily*',
+        answers: [
+          '*throws ball*',
+          'Bark bark!',
+          'Woof!',
+          'Arf woof bark!'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: '*spins in circle* Arf arf arf! Woof bark?',
+        answers: [
+          'Bark bark bark!',
+          '*gives treat*',
+          'Woof arf!',
+          'Arf bark woof!'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Woof! *brings toy* Bark bark woof arf?',
+        answers: [
+          'Woof woof!',
+          'Bark!',
+          '*plays fetch*',
+          'Arf arf bark!'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: '*sits nicely* Arf? Woof woof bark?',
+        answers: [
+          'Bark woof!',
+          'Arf arf!',
+          'Woof bark bark!',
+          '*good boy pat*'
+        ],
+        correctIndex: 3
+      },
+      {
+        question: 'Bark bark! *jumps excitedly* Woof arf bark?',
+        answers: [
+          '*more treats!*',
+          'Woof woof woof!',
+          'Bark arf!',
+          'Arf bark!'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: '*rolls over* Woof woof! Arf bark woof?',
+        answers: [
+          'Bark!',
+          '*belly rubs!*',
+          'Arf woof!',
+          'Woof bark arf!'
+        ],
+        correctIndex: 1
+      }
+    ]
+  },
+  
+  'tufte': {
+    id: 'tufte',
+    displayName: 'Tufte',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 75,
+    difficulty: 5,
+    expReward: 35,
+    goldReward: 40,
+    spriteKey: 'enemy-tufte',
+    introText: '*waves Norwegian flag* So you think you know Jens Stoltenberg? La oss se!',
+    defeatText: '*nods approvingly* Imponerende! Du kjenner Norges politiske historie godt.',
+    questions: [
+      {
+        question: 'When was Jens Stoltenberg born?',
+        answers: [
+          'March 16, 1957',
+          'March 16, 1959',
+          'June 16, 1959',
+          'March 16, 1961'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'How old was Stoltenberg when he became a member of Arbeiderpartiet (Labour Party)?',
+        answers: [
+          '12 years old',
+          '14 years old',
+          '16 years old',
+          '18 years old'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What did Stoltenberg study at the University of Oslo?',
+        answers: [
+          'Political Science',
+          'Law',
+          'Economics (Sosialøkonomi)',
+          'History'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'Stoltenberg was leader of AUF (Labour Youth) from which years?',
+        answers: [
+          '1979-1983',
+          '1983-1987',
+          '1985-1989',
+          '1987-1991'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What ministerial post did Stoltenberg first hold in 1993?',
+        answers: [
+          'Finance Minister',
+          'Foreign Minister',
+          'Trade and Energy Minister',
+          'Environment Minister'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'Stoltenberg\'s father Thorvald was both Foreign Minister and what other minister?',
+        answers: [
+          'Finance Minister',
+          'Defense Minister',
+          'Justice Minister',
+          'Health Minister'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Stoltenberg became Norway\'s youngest PM at what age when taking office in 2000?',
+        answers: [
+          '38 years old',
+          '39 years old',
+          '41 years old',
+          '43 years old'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What did Stoltenberg famously say after the July 22, 2011 terror attacks?',
+        answers: [
+          '"We shall never surrender"',
+          '"More democracy, more openness, but never naivety"',
+          '"Unity is our strength"',
+          '"Justice will prevail"'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Who proposed Stoltenberg as NATO Secretary General in 2014?',
+        answers: [
+          'British PM David Cameron',
+          'French President Hollande',
+          'German Chancellor Merkel and US President Obama',
+          'Danish PM Helle Thorning-Schmidt'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What position did Stoltenberg accept in February 2025 after leaving NATO?',
+        answers: [
+          'Foreign Minister',
+          'Finance Minister',
+          'Central Bank Governor',
+          'UN Secretary General'
+        ],
+        correctIndex: 1
+      }
+    ]
+  },
+  
+  'mats': {
+    id: 'mats',
+    displayName: 'Mats',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 70,
+    difficulty: 5,
+    expReward: 35,
+    goldReward: 45,
+    spriteKey: 'enemy-mats',
+    introText: '*strokes long beard thoughtfully* Ah, another one who thinks they understand technology...',
+    defeatText: '*nods approvingly* Your tech knowledge is impressive. Perhaps you should grow a beard too!',
+    questions: [
+      {
+        question: 'What does CPU stand for?',
+        answers: [
+          'Central Processing Unit',
+          'Computer Personal Unit',
+          'Central Program Utility',
+          'Core Processing Unit'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'Which company developed the first commercially successful GUI operating system?',
+        answers: [
+          'Microsoft',
+          'Apple',
+          'IBM',
+          'Xerox PARC'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What programming language was created by Guido van Rossum?',
+        answers: [
+          'Java',
+          'Ruby',
+          'Python',
+          'JavaScript'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What does RAM stand for?',
+        answers: [
+          'Random Access Memory',
+          'Read And Modify',
+          'Rapid Access Module',
+          'Remote Access Memory'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'Which company is known for creating the Linux kernel?',
+        answers: [
+          'Microsoft',
+          'Created by Linus Torvalds',
+          'Apple',
+          'Google'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What does HTML stand for?',
+        answers: [
+          'Hyper Text Markup Language',
+          'High Tech Modern Language',
+          'Home Tool Markup Language',
+          'Hyperlink Text Management Language'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'What year was the first iPhone released?',
+        answers: [
+          '2005',
+          '2006',
+          '2007',
+          '2008'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What does SSD stand for in computer storage?',
+        answers: [
+          'Super Speed Drive',
+          'Solid State Drive',
+          'Standard Storage Device',
+          'System Storage Disk'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Which protocol is used for secure web browsing?',
+        answers: [
+          'HTTP',
+          'FTP',
+          'HTTPS',
+          'SMTP'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the name of Microsoft\'s cloud computing platform?',
+        answers: [
+          'AWS',
+          'Google Cloud',
+          'Azure',
+          'IBM Cloud'
+        ],
+        correctIndex: 2
+      }
+    ]
+  },
+  
+  'anya': {
+    id: 'anya',
+    displayName: 'Anya',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 70,
+    difficulty: 5,
+    expReward: 35,
+    goldReward: 40,
+    spriteKey: 'enemy-anya',
+    introText: '*shakes cocktail shaker* Ready for a mixology quiz? Let\'s see what you know about bartending!',
+    defeatText: '*pours a perfect drink* Impressive! You really know your way around a bar.',
+    questions: [
+      {
+        question: 'What is the primary ingredient in a Margarita?',
+        answers: [
+          'Vodka',
+          'Rum',
+          'Tequila',
+          'Gin'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What does "on the rocks" mean?',
+        answers: [
+          'Blended with ice',
+          'Served with ice cubes',
+          'Served warm',
+          'Mixed with soda'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Which cocktail is made with rum, lime juice, and mint?',
+        answers: [
+          'Mojito',
+          'Daiquiri',
+          'Piña Colada',
+          'Mai Tai'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'What tool is used to strain cocktails?',
+        answers: [
+          'Muddler',
+          'Jigger',
+          'Hawthorne strainer',
+          'Bar spoon'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the base spirit in a classic Martini?',
+        answers: [
+          'Vodka',
+          'Whiskey',
+          'Gin',
+          'Rum'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What does "muddling" mean in bartending?',
+        answers: [
+          'Shaking vigorously',
+          'Crushing ingredients to release flavors',
+          'Stirring slowly',
+          'Pouring over ice'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Which cocktail contains vodka, coffee liqueur, and cream?',
+        answers: [
+          'Espresso Martini',
+          'White Russian',
+          'Black Russian',
+          'Irish Coffee'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is a jigger used for?',
+        answers: [
+          'Stirring drinks',
+          'Measuring alcohol',
+          'Straining cocktails',
+          'Opening bottles'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What type of glass is typically used for a Martini?',
+        answers: [
+          'Highball glass',
+          'Rocks glass',
+          'Cocktail/Martini glass',
+          'Collins glass'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the main ingredient in a Moscow Mule?',
+        answers: [
+          'Gin',
+          'Tequila',
+          'Vodka',
+          'Rum'
+        ],
+        correctIndex: 2
+      }
+    ]
+  },
+  
+  'martine': {
+    id: 'martine',
+    displayName: 'Martine',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 70,
+    difficulty: 5,
+    expReward: 35,
+    goldReward: 40,
+    spriteKey: 'enemy-martine',
+    introText: '*clutches Twilight book* Are you Team Edward or Team Jacob? Let\'s test your Twilight knowledge!',
+    defeatText: '*sighs dreamily* Finally, someone who understands the saga! You sparkle like a Cullen.',
+    questions: [
+      {
+        question: 'What is the name of the main character in Twilight?',
+        answers: [
+          'Alice Cullen',
+          'Bella Swan',
+          'Rosalie Hale',
+          'Victoria'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What city does Bella move to at the beginning of Twilight?',
+        answers: [
+          'Seattle',
+          'Phoenix',
+          'Forks',
+          'Portland'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What happens to vampires in sunlight in the Twilight universe?',
+        answers: [
+          'They burn',
+          'They sparkle',
+          'They become invisible',
+          'Nothing happens'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Who is the leader of the Cullen family?',
+        answers: [
+          'Edward',
+          'Jasper',
+          'Carlisle',
+          'Emmett'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is Edward\'s special vampire ability?',
+        answers: [
+          'Super strength',
+          'Reading minds',
+          'Seeing the future',
+          'Controlling emotions'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the name of Bella and Edward\'s daughter?',
+        answers: [
+          'Rosemary',
+          'Renesmee',
+          'Rebecca',
+          'Rachel'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Which Cullen can see the future?',
+        answers: [
+          'Rosalie',
+          'Esme',
+          'Alice',
+          'Edward'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What type of creature is Jacob Black?',
+        answers: [
+          'Vampire',
+          'Werewolf/Shape-shifter',
+          'Human',
+          'Hybrid'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the name of the vampire ruling family in Italy?',
+        answers: [
+          'The Cullens',
+          'The Denalis',
+          'The Volturi',
+          'The Romanians'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'Who played Edward Cullen in the Twilight movies?',
+        answers: [
+          'Taylor Lautner',
+          'Kellan Lutz',
+          'Robert Pattinson',
+          'Jackson Rathbone'
+        ],
+        correctIndex: 2
+      }
+    ]
+  },
+  
+  // ANNA - Danish woman with dark hair who asks questions about Denmark
+  'anna': {
+    id: 'anna',
+    displayName: 'Anna',
+    zone: 'lobby',
+    isBoss: false,
+    maxHP: 85,
+    difficulty: 5,
+    expReward: 45,
+    goldReward: 60,
+    spriteKey: 'enemy-anna',
+    introText: 'Hej! I\'m Anna from Denmark. Let\'s see how much you know about my beautiful country!',
+    defeatText: 'Fantastisk! You really know your Danish trivia! Hyggeligt to meet you!',
+    questions: [
+      {
+        question: 'What is the capital of Denmark?',
+        answers: [
+          'Stockholm',
+          'Oslo',
+          'Copenhagen',
+          'Helsinki'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the famous Danish concept of coziness and contentment called?',
+        answers: [
+          'Lagom',
+          'Hygge',
+          'Fika',
+          'Sisu'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What famous fairy tale author was Danish?',
+        answers: [
+          'Brothers Grimm',
+          'Charles Perrault',
+          'Hans Christian Andersen',
+          'Astrid Lindgren'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the name of the famous amusement park in Copenhagen?',
+        answers: [
+          'Legoland',
+          'Tivoli Gardens',
+          'Gröna Lund',
+          'Europa-Park'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What colors are on the Danish flag?',
+        answers: [
+          'Blue and yellow',
+          'Red and white',
+          'Blue and white',
+          'Red and yellow'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What famous toy company originated in Denmark?',
+        answers: [
+          'Hasbro',
+          'Mattel',
+          'LEGO',
+          'Playmobil'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'What is the traditional Danish open-faced sandwich called?',
+        answers: [
+          'Smørrebrød',
+          'Smörgåsbord',
+          'Pannkakor',
+          'Frikadeller'
+        ],
+        correctIndex: 0
+      },
+      {
+        question: 'What strait separates Denmark from Sweden?',
+        answers: [
+          'English Channel',
+          'Øresund',
+          'Kattegat',
+          'Skagerrak'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'Which famous statue sits in Copenhagen\'s harbor?',
+        answers: [
+          'The Thinker',
+          'The Little Mermaid',
+          'Venus de Milo',
+          'David'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is the currency of Denmark?',
+        answers: [
+          'Euro',
+          'Swedish Krona',
+          'Norwegian Krone',
+          'Danish Krone'
+        ],
+        correctIndex: 3
+      },
+      {
+        question: 'Which famous Danish physicist won the Nobel Prize for his work on atomic structure?',
+        answers: [
+          'Albert Einstein',
+          'Niels Bohr',
+          'Werner Heisenberg',
+          'Max Planck'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'What is Denmark\'s largest island?',
+        answers: [
+          'Funen',
+          'Bornholm',
+          'Zealand',
+          'Lolland'
+        ],
+        correctIndex: 2
+      }
+    ]
   }
 };
 

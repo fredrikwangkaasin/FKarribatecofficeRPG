@@ -33,7 +33,10 @@ export default class PreloadScene extends Phaser.Scene {
       'lars-hugo', // Cycling/running cap enthusiast
       'ole-jakob', // Professional businessman who knows Arribatec
       'kristiane', // Medical professional with lab coat and blonde hair
-      'fredrik' // Drummer who wears band shirts and asks pop quiz questions
+      'fredrik', // Drummer who wears band shirts and asks pop quiz questions
+      'henrik', // Bald guy with mustache and purple scarf who asks Dark Souls questions
+      'nils', // Small brown dog who speaks only in dog language
+      'anna' // Danish woman with dark hair who asks questions about Denmark
     ];
     
     enemies.forEach(enemy => {
@@ -168,7 +171,14 @@ export default class PreloadScene extends Phaser.Scene {
       'lars-hugo': { color: 0x228B22, accessory: 0x4169E1, isAthlete: true }, // Lars Hugo - Athletic green with blue cap
       'ole-jakob': { color: 0x1a365d, accessory: 0xFFD700, isBusinessman: true }, // Ole Jakob - Professional navy suit with gold tie
       'kristiane': { color: 0xFFFFFF, accessory: 0x2E8B57, isMedical: true }, // Kristiane - Lab coat with blonde hair
-      'fredrik': { color: 0x1a1a1a, accessory: 0xFF4500, isDrummer: true } // Fredrik - Band shirt drummer
+      'fredrik': { color: 0x1a1a1a, accessory: 0xFF4500, isDrummer: true }, // Fredrik - Band shirt drummer
+      'henrik': { color: 0x2c2c2c, accessory: 0x800080, isDarkSouls: true }, // Henrik - Bald with mustache and purple scarf
+      'nils': { color: 0xA0522D, accessory: 0xFFD700, isDog: true }, // Nils - American Hairless Terrier with auburn fur
+      'tufte': { color: 0x4169E1, accessory: 0xFFD700, isTufte: true }, // Tufte - Woman with long blond hair and distinct eyebrows
+      'mats': { color: 0x2F4F4F, accessory: 0x00CED1, isMats: true }, // Mats - Man with long dark beard
+      'anya': { color: 0x800020, accessory: 0x333333, isAnya: true }, // Anya - Woman with dark hair and glasses, bartender
+      'martine': { color: 0x1a1a1a, accessory: 0xFFD700, isMartine: true }, // Martine - Blond woman with black clothing, Twilight fan
+      'anna': { color: 0xC41E3A, accessory: 0xFFFFFF, isAnna: true } // Anna - Danish woman with dark hair
     };
     
     Object.entries(enemyStyles).forEach(([enemy, style]) => {
@@ -827,6 +837,913 @@ export default class PreloadScene extends Phaser.Scene {
           return;
         }
         
+        // HENRIK - Bald guy with mustache and purple scarf, Dark Souls expert
+        if ((style as any).isDarkSouls) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.4);
+          graphics.fillEllipse(32, 62, 18, 5);
+          
+          // Dark boots (souls-like aesthetic)
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(22, 55, 9, 8, 2);
+          graphics.fillRoundedRect(33, 55, 9, 8, 2);
+          // Boot buckles
+          graphics.fillStyle(0xC0C0C0);
+          graphics.fillRect(24, 57, 5, 2);
+          graphics.fillRect(35, 57, 5, 2);
+          
+          // Dark pants
+          graphics.fillStyle(0x2c2c2c);
+          graphics.fillRoundedRect(24, 40, 7, 16, 2);
+          graphics.fillRoundedRect(33, 40, 7, 16, 2);
+          
+          // Dark hoodie/jacket (souls vibe)
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(16, 22, 32, 20, 4);
+          // Hoodie detail
+          graphics.fillStyle(0x2c2c2c);
+          graphics.fillRoundedRect(18, 24, 28, 16, 3);
+          // Hood behind head
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillEllipse(32, 6, 16, 10);
+          
+          // Purple scarf wrapped around neck (prominent!)
+          graphics.fillStyle(0x800080);
+          graphics.fillRoundedRect(20, 18, 24, 8, 3);
+          // Scarf ends hanging down
+          graphics.fillStyle(0x800080);
+          graphics.fillRoundedRect(16, 22, 6, 18, 2);
+          graphics.fillRoundedRect(42, 22, 6, 18, 2);
+          // Scarf tips
+          graphics.fillTriangle(16, 40, 22, 40, 19, 46);
+          graphics.fillTriangle(42, 40, 48, 40, 45, 46);
+          // Scarf wrap detail
+          graphics.fillStyle(0x9932CC);
+          graphics.fillRect(22, 19, 20, 2);
+          graphics.fillRect(18, 24, 4, 14);
+          graphics.fillRect(42, 24, 4, 14);
+          
+          // Arms
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(8, 26, 8, 16, 3);
+          graphics.fillRoundedRect(48, 26, 8, 16, 3);
+          // Hands
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(12, 44, 4);
+          graphics.fillCircle(52, 44, 4);
+          
+          // Estus Flask in hand! (iconic Dark Souls item)
+          graphics.fillStyle(0xFF6600);
+          graphics.fillRoundedRect(4, 40, 8, 12, 3);
+          graphics.fillStyle(0xFFAA00);
+          graphics.fillRect(6, 42, 4, 8);
+          // Flask cork
+          graphics.fillStyle(0x8B4513);
+          graphics.fillRect(6, 38, 4, 3);
+          // Fire glow from flask
+          graphics.fillStyle(0xFFFF00, 0.5);
+          graphics.fillCircle(8, 44, 6);
+          
+          // Neck
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillRect(28, 14, 8, 6);
+          
+          // Head - BALD
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(32, 8, 12);
+          // Bald head shine
+          graphics.fillStyle(0xFFE4C4, 0.6);
+          graphics.fillCircle(28, 4, 4);
+          
+          // Prominent MUSTACHE
+          graphics.fillStyle(0x4a3728);
+          // Left side of mustache
+          graphics.fillEllipse(26, 14, 6, 3);
+          // Right side of mustache
+          graphics.fillEllipse(38, 14, 6, 3);
+          // Center of mustache
+          graphics.fillRect(28, 13, 8, 3);
+          // Mustache curls at ends
+          graphics.fillCircle(20, 14, 2);
+          graphics.fillCircle(44, 14, 2);
+          
+          // Eyes - wise/knowing look
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(27, 8, 4, 3);
+          graphics.fillEllipse(37, 8, 4, 3);
+          graphics.fillStyle(0x4a3728);
+          graphics.fillCircle(27, 8, 2);
+          graphics.fillCircle(37, 8, 2);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(27, 8, 1);
+          graphics.fillCircle(37, 8, 1);
+          
+          // Slight furrowed brow (serious gamer)
+          graphics.lineStyle(2, 0x8B7355);
+          graphics.lineBetween(23, 4, 30, 5);
+          graphics.lineBetween(34, 5, 41, 4);
+          
+          // Small knowing smile under mustache
+          graphics.lineStyle(2, 0x8B4513);
+          graphics.beginPath();
+          graphics.arc(32, 18, 3, 0.2, Math.PI - 0.2, false);
+          graphics.strokePath();
+          
+          // Ears
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(19, 8, 3, 5);
+          graphics.fillEllipse(45, 8, 3, 5);
+          
+          // "YOU DIED" text floating above (Dark Souls reference)
+          graphics.fillStyle(0x8B0000, 0.8);
+          graphics.fillRect(18, -10, 28, 8);
+          graphics.fillStyle(0xFF0000);
+          // Simple skull icon instead of text
+          graphics.fillCircle(32, -6, 4);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(30, -7, 1);
+          graphics.fillCircle(34, -7, 1);
+          graphics.fillRect(30, -4, 4, 2);
+          
+          graphics.generateTexture(key, 64, 72);
+          graphics.destroy();
+          console.log('Created Henrik Dark Souls texture with bald head, mustache, and purple scarf');
+          return;
+        }
+        
+        // NILS - American Hairless Terrier with auburn fur
+        if ((style as any).isDog) {
+          // Auburn/reddish-brown color palette
+          const auburnMain = 0xA0522D;      // Main auburn body
+          const auburnLight = 0xCD853F;     // Lighter auburn highlights
+          const auburnDark = 0x8B4513;      // Darker auburn shadows
+          const skinPink = 0xE8B4B8;        // Pink skin showing through
+          
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 58, 18, 4);
+          
+          // === BODY (draw first as base) ===
+          // Main body - large oval
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(32, 40, 18, 12);
+          
+          // Chest/front body connecting to neck
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(18, 38, 10, 10);
+          
+          // Rear/hip area
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(46, 40, 8, 10);
+          
+          // Belly highlight
+          graphics.fillStyle(auburnLight);
+          graphics.fillEllipse(32, 44, 14, 6);
+          
+          // Skin showing through (hairless look)
+          graphics.fillStyle(skinPink, 0.25);
+          graphics.fillEllipse(30, 42, 12, 6);
+          
+          // === LEGS (connected to body) ===
+          // Back left leg
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(22, 48, 4, 8);
+          graphics.fillEllipse(22, 54, 3, 5);
+          graphics.fillStyle(auburnDark);
+          graphics.fillEllipse(22, 58, 4, 2);
+          
+          // Back right leg
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(42, 48, 4, 8);
+          graphics.fillEllipse(42, 54, 3, 5);
+          graphics.fillStyle(auburnDark);
+          graphics.fillEllipse(42, 58, 4, 2);
+          
+          // Front left leg
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(14, 46, 4, 8);
+          graphics.fillEllipse(14, 54, 3, 5);
+          graphics.fillStyle(auburnDark);
+          graphics.fillEllipse(14, 58, 4, 2);
+          
+          // Front right leg (slightly behind)
+          graphics.fillStyle(auburnDark);
+          graphics.fillEllipse(24, 46, 3, 7);
+          graphics.fillEllipse(24, 53, 2, 4);
+          graphics.fillEllipse(24, 57, 3, 2);
+          
+          // === TAIL (connected to rear) ===
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(52, 36, 6, 3);
+          graphics.fillEllipse(56, 32, 4, 2);
+          graphics.fillEllipse(58, 28, 3, 2);
+          graphics.fillStyle(auburnLight);
+          graphics.fillCircle(59, 26, 2);
+          
+          // === NECK (connecting body to head) ===
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(12, 34, 8, 8);
+          graphics.fillEllipse(10, 30, 7, 7);
+          
+          // === HEAD ===
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(8, 22, 10, 10);
+          
+          // Forehead highlight
+          graphics.fillStyle(auburnLight);
+          graphics.fillEllipse(8, 18, 6, 4);
+          
+          // === MUZZLE (connected to head) ===
+          graphics.fillStyle(auburnMain);
+          graphics.fillEllipse(2, 24, 8, 6);
+          graphics.fillStyle(auburnLight);
+          graphics.fillEllipse(0, 25, 6, 4);
+          
+          // Nose
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillCircle(-4, 25, 3);
+          graphics.fillStyle(0x333333);
+          graphics.fillCircle(-5, 24, 1);
+          
+          // === EARS (bat-like, erect) ===
+          graphics.fillStyle(auburnMain);
+          graphics.fillTriangle(2, 22, 0, 8, 8, 14);
+          graphics.fillTriangle(14, 22, 12, 8, 20, 14);
+          // Inner ear pink
+          graphics.fillStyle(skinPink);
+          graphics.fillTriangle(3, 20, 1, 10, 7, 15);
+          graphics.fillTriangle(13, 20, 13, 10, 18, 15);
+          
+          // === EYES ===
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(4, 20, 3, 2.5);
+          graphics.fillEllipse(11, 20, 3, 2.5);
+          graphics.fillStyle(0x4a3728);
+          graphics.fillCircle(4, 20, 1.5);
+          graphics.fillCircle(11, 20, 1.5);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(4, 20, 0.8);
+          graphics.fillCircle(11, 20, 0.8);
+          // Eye shine
+          graphics.fillStyle(0xffffff);
+          graphics.fillCircle(3, 19, 0.5);
+          graphics.fillCircle(10, 19, 0.5);
+          
+          // === MOUTH ===
+          graphics.lineStyle(1, 0x1a1a1a);
+          graphics.beginPath();
+          graphics.arc(-1, 27, 2, 0.2, Math.PI - 0.2, false);
+          graphics.strokePath();
+          // Tongue
+          graphics.fillStyle(0xFF6B6B);
+          graphics.fillEllipse(-1, 30, 2, 3);
+          
+          // === COLLAR ===
+          graphics.fillStyle(0xFF0000);
+          graphics.fillRoundedRect(6, 30, 8, 3, 1);
+          graphics.fillStyle(0xFFD700);
+          graphics.fillCircle(10, 34, 2);
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Nils - American Hairless Terrier with auburn fur');
+          return;
+        }
+        
+        // TUFTE - Woman with long blond hair and distinct eyebrows
+        if ((style as any).isTufte) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 60, 18, 4);
+          
+          // Legs with professional pants
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillRoundedRect(24, 48, 8, 14, 3);
+          graphics.fillRoundedRect(32, 48, 8, 14, 3);
+          // Professional shoes
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillEllipse(28, 61, 5, 2);
+          graphics.fillEllipse(36, 61, 5, 2);
+          
+          // Body - professional blue blouse
+          graphics.fillStyle(0x4169E1);
+          graphics.fillRoundedRect(20, 26, 24, 24, 4);
+          // Darker cardigan/jacket
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillRoundedRect(18, 26, 6, 22, 2);
+          graphics.fillRoundedRect(40, 26, 6, 22, 2);
+          // Blouse collar
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillTriangle(28, 26, 32, 32, 36, 26);
+          
+          // Arms
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillRoundedRect(12, 28, 8, 16, 3);
+          graphics.fillRoundedRect(44, 28, 8, 16, 3);
+          // Hands
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(16, 46, 4);
+          graphics.fillCircle(48, 46, 4);
+          
+          // Book/notepad in hand (political analyst)
+          graphics.fillStyle(0x8B0000);
+          graphics.fillRoundedRect(42, 40, 10, 12, 1);
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRect(44, 42, 6, 8);
+          // Book binding
+          graphics.fillStyle(0xDAA520);
+          graphics.fillRect(42, 40, 2, 12);
+          
+          // Neck
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillRect(28, 18, 8, 10);
+          
+          // Head
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(32, 12, 12);
+          
+          // Long blond hair - flowing behind and around face
+          graphics.fillStyle(0xFFD700);
+          // Back hair layer
+          graphics.fillEllipse(32, 14, 16, 14);
+          // Hair going down left side
+          graphics.fillRoundedRect(16, 8, 8, 30, 4);
+          // Hair going down right side
+          graphics.fillRoundedRect(40, 8, 8, 30, 4);
+          // Top of head hair
+          graphics.fillEllipse(32, 4, 14, 8);
+          // Fringe/bangs
+          graphics.fillStyle(0xFFD700);
+          graphics.fillEllipse(26, 4, 6, 4);
+          graphics.fillEllipse(38, 4, 6, 4);
+          graphics.fillEllipse(32, 2, 8, 4);
+          
+          // Face (draw over hair)
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(32, 12, 10, 10);
+          
+          // DISTINCT EYEBROWS - prominent and expressive
+          graphics.fillStyle(0x8B7355);
+          // Left eyebrow - thick and arched
+          graphics.fillRoundedRect(23, 6, 8, 3, 1);
+          // Right eyebrow - thick and arched
+          graphics.fillRoundedRect(33, 6, 8, 3, 1);
+          // Add extra thickness to make them really stand out
+          graphics.fillStyle(0x5C4033);
+          graphics.fillRoundedRect(24, 5, 6, 2, 1);
+          graphics.fillRoundedRect(34, 5, 6, 2, 1);
+          
+          // Eyes - intelligent, analytical look
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(27, 11, 4, 3);
+          graphics.fillEllipse(37, 11, 4, 3);
+          graphics.fillStyle(0x4682B4); // Blue eyes
+          graphics.fillCircle(27, 11, 2);
+          graphics.fillCircle(37, 11, 2);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(27, 11, 1);
+          graphics.fillCircle(37, 11, 1);
+          // Eye shine
+          graphics.fillStyle(0xffffff);
+          graphics.fillCircle(26, 10, 0.8);
+          graphics.fillCircle(36, 10, 0.8);
+          
+          // Small nose
+          graphics.fillStyle(0xE8B4B8);
+          graphics.fillEllipse(32, 14, 2, 2);
+          
+          // Slight smile
+          graphics.lineStyle(1.5, 0xCC8080);
+          graphics.beginPath();
+          graphics.arc(32, 17, 3, 0.2, Math.PI - 0.2, false);
+          graphics.strokePath();
+          
+          // Norwegian flag pin
+          graphics.fillStyle(0xFF0000);
+          graphics.fillRect(10, 30, 6, 4);
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRect(11, 30, 2, 4);
+          graphics.fillStyle(0x002868);
+          graphics.fillRect(12, 30, 1, 4);
+          
+          // Ears (behind hair)
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(20, 12, 2, 4);
+          graphics.fillEllipse(44, 12, 2, 4);
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Tufte - woman with long blond hair and distinct eyebrows');
+          return;
+        }
+        
+        // MATS - Man with long dark beard
+        if ((style as any).isMats) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 60, 18, 4);
+          
+          // Legs with jeans (tech guy casual)
+          graphics.fillStyle(0x4169E1);
+          graphics.fillRoundedRect(24, 48, 8, 14, 3);
+          graphics.fillRoundedRect(32, 48, 8, 14, 3);
+          // Sneakers
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillEllipse(28, 61, 6, 3);
+          graphics.fillEllipse(36, 61, 6, 3);
+          // Shoe accent
+          graphics.fillStyle(0x00CED1);
+          graphics.fillRect(25, 59, 3, 1);
+          graphics.fillRect(37, 59, 3, 1);
+          
+          // Body - tech t-shirt
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillRoundedRect(20, 26, 24, 24, 4);
+          // Tech logo on shirt (simple circuit pattern)
+          graphics.lineStyle(1, 0x00CED1);
+          graphics.lineBetween(28, 34, 36, 34);
+          graphics.lineBetween(32, 30, 32, 38);
+          graphics.fillStyle(0x00CED1);
+          graphics.fillCircle(28, 34, 2);
+          graphics.fillCircle(36, 34, 2);
+          graphics.fillCircle(32, 30, 2);
+          graphics.fillCircle(32, 38, 2);
+          
+          // Arms
+          graphics.fillStyle(0x2F4F4F);
+          graphics.fillRoundedRect(12, 28, 10, 16, 3);
+          graphics.fillRoundedRect(42, 28, 10, 16, 3);
+          // Hands
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(17, 46, 4);
+          graphics.fillCircle(47, 46, 4);
+          
+          // Laptop in hands (tech guy!)
+          graphics.fillStyle(0x333333);
+          graphics.fillRoundedRect(20, 44, 24, 14, 2);
+          graphics.fillStyle(0x4169E1);
+          graphics.fillRect(22, 46, 20, 10);
+          // Screen glow
+          graphics.fillStyle(0x00CED1, 0.3);
+          graphics.fillRect(24, 48, 16, 6);
+          // Code on screen
+          graphics.fillStyle(0x00FF00);
+          graphics.fillRect(24, 48, 8, 1);
+          graphics.fillRect(26, 50, 6, 1);
+          graphics.fillRect(24, 52, 10, 1);
+          
+          // Neck
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillRect(28, 16, 8, 12);
+          
+          // Head
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(32, 10, 12);
+          
+          // Good dark hair - full and styled
+          graphics.fillStyle(0x1a1a1a);
+          // Main hair volume on top
+          graphics.fillEllipse(32, 2, 14, 10);
+          graphics.fillEllipse(32, 0, 12, 8);
+          // Side volume
+          graphics.fillEllipse(22, 6, 6, 8);
+          graphics.fillEllipse(42, 6, 6, 8);
+          // Styled wave/swoop to the side
+          graphics.fillEllipse(24, 0, 8, 6);
+          graphics.fillEllipse(40, 2, 8, 5);
+          // Top texture and volume
+          graphics.fillStyle(0x2a2a2a);
+          graphics.fillEllipse(28, -2, 6, 4);
+          graphics.fillEllipse(36, -1, 6, 4);
+          // Hair shine highlights
+          graphics.fillStyle(0x3a3a3a);
+          graphics.fillEllipse(30, 0, 4, 3);
+          graphics.fillEllipse(34, 1, 4, 3);
+          
+          // LONG DARK BEARD - the defining feature!
+          graphics.fillStyle(0x1a1a1a);
+          // Beard base covering lower face and going down
+          graphics.fillEllipse(32, 20, 12, 10);
+          graphics.fillEllipse(32, 28, 10, 10);
+          graphics.fillEllipse(32, 34, 8, 8);
+          // Beard going even longer!
+          graphics.fillEllipse(32, 40, 6, 6);
+          // Mustache connecting to beard
+          graphics.fillEllipse(27, 16, 5, 3);
+          graphics.fillEllipse(37, 16, 5, 3);
+          // Soul patch in center
+          graphics.fillRect(30, 18, 4, 4);
+          // Beard texture details
+          graphics.fillStyle(0x2a2a2a);
+          graphics.fillEllipse(28, 24, 3, 4);
+          graphics.fillEllipse(36, 24, 3, 4);
+          graphics.fillEllipse(32, 32, 4, 4);
+          
+          // Eyes - peering through
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(27, 10, 4, 3);
+          graphics.fillEllipse(37, 10, 4, 3);
+          graphics.fillStyle(0x4a3728); // Brown eyes
+          graphics.fillCircle(27, 10, 2);
+          graphics.fillCircle(37, 10, 2);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(27, 10, 1);
+          graphics.fillCircle(37, 10, 1);
+          // Eye shine
+          graphics.fillStyle(0xffffff);
+          graphics.fillCircle(26, 9, 0.8);
+          graphics.fillCircle(36, 9, 0.8);
+          
+          // Eyebrows
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(23, 6, 8, 2, 1);
+          graphics.fillRoundedRect(33, 6, 8, 2, 1);
+          
+          // Nose (peeking through mustache area)
+          graphics.fillStyle(0xE8B4B8);
+          graphics.fillEllipse(32, 13, 3, 2);
+          
+          // Ears
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(19, 10, 3, 5);
+          graphics.fillEllipse(45, 10, 3, 5);
+          
+          // Headphones around neck (tech guy accessory)
+          graphics.fillStyle(0x333333);
+          graphics.fillEllipse(22, 24, 4, 3);
+          graphics.fillEllipse(42, 24, 4, 3);
+          graphics.lineStyle(2, 0x333333);
+          graphics.beginPath();
+          graphics.arc(32, 6, 14, Math.PI + 0.3, -0.3, false);
+          graphics.strokePath();
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Mats - man with long dark beard and tech accessories');
+          return;
+        }
+        
+        // ANYA - Woman with dark hair and glasses (bartender)
+        if ((style as any).isAnya) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 60, 18, 4);
+          
+          // Legs with dark pants
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(26, 48, 6, 14, 2);
+          graphics.fillRoundedRect(32, 48, 6, 14, 2);
+          // Heeled shoes
+          graphics.fillStyle(0x000000);
+          graphics.fillEllipse(29, 61, 5, 3);
+          graphics.fillEllipse(35, 61, 5, 3);
+          
+          // Body - bartender vest/apron
+          graphics.fillStyle(0x800020); // Burgundy
+          graphics.fillRoundedRect(22, 28, 20, 22, 4);
+          // White shirt underneath
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRoundedRect(26, 30, 12, 8, 2);
+          // Apron
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(24, 38, 16, 12, 2);
+          // Apron pocket
+          graphics.fillStyle(0x2a2a2a);
+          graphics.fillRect(28, 42, 8, 4);
+          
+          // Arms
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRoundedRect(14, 30, 8, 14, 3);
+          graphics.fillRoundedRect(42, 30, 8, 14, 3);
+          // Hands
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(18, 46, 4);
+          graphics.fillCircle(46, 46, 4);
+          
+          // Cocktail shaker in hand!
+          graphics.fillStyle(0xC0C0C0);
+          graphics.fillRoundedRect(44, 38, 6, 14, 2);
+          graphics.fillStyle(0x888888);
+          graphics.fillRect(44, 38, 6, 3);
+          
+          // Neck
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillRect(28, 18, 8, 12);
+          
+          // Head
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(32, 12, 12);
+          
+          // Dark hair - stylish bob cut
+          graphics.fillStyle(0x1a1a1a);
+          // Hair volume on top
+          graphics.fillEllipse(32, 4, 14, 10);
+          graphics.fillEllipse(32, 2, 12, 8);
+          // Side hair framing face
+          graphics.fillEllipse(20, 10, 5, 12);
+          graphics.fillEllipse(44, 10, 5, 12);
+          // Bangs
+          graphics.fillRect(24, 2, 16, 6);
+          // Hair shine
+          graphics.fillStyle(0x3a3a3a);
+          graphics.fillEllipse(28, 2, 4, 3);
+          graphics.fillEllipse(36, 3, 4, 3);
+          
+          // GLASSES - distinctive feature!
+          graphics.lineStyle(2, 0x333333);
+          // Left lens
+          graphics.strokeCircle(26, 12, 5);
+          // Right lens
+          graphics.strokeCircle(38, 12, 5);
+          // Bridge
+          graphics.lineBetween(31, 12, 33, 12);
+          // Temples
+          graphics.lineBetween(21, 12, 18, 10);
+          graphics.lineBetween(43, 12, 46, 10);
+          
+          // Eyes behind glasses
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(26, 12, 3, 2.5);
+          graphics.fillEllipse(38, 12, 3, 2.5);
+          graphics.fillStyle(0x4a3728); // Brown eyes
+          graphics.fillCircle(26, 12, 1.5);
+          graphics.fillCircle(38, 12, 1.5);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(26, 12, 0.8);
+          graphics.fillCircle(38, 12, 0.8);
+          
+          // Eyebrows
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(23, 7, 6, 1.5, 1);
+          graphics.fillRoundedRect(35, 7, 6, 1.5, 1);
+          
+          // Friendly smile
+          graphics.lineStyle(1.5, 0xCC6666);
+          graphics.beginPath();
+          graphics.arc(32, 16, 4, 0.2, Math.PI - 0.2, false);
+          graphics.strokePath();
+          
+          // Nose
+          graphics.fillStyle(0xE8B4B8);
+          graphics.fillEllipse(32, 15, 2, 1.5);
+          
+          // Ears
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(18, 12, 2, 4);
+          graphics.fillEllipse(46, 12, 2, 4);
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Anya - bartender with dark hair and glasses');
+          return;
+        }
+        
+        // MARTINE - Blond woman with black clothing (Twilight fan)
+        if ((style as any).isMartine) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 60, 18, 4);
+          
+          // Legs with black skinny jeans
+          graphics.fillStyle(0x0a0a0a);
+          graphics.fillRoundedRect(26, 48, 6, 14, 2);
+          graphics.fillRoundedRect(32, 48, 6, 14, 2);
+          // Black boots
+          graphics.fillStyle(0x000000);
+          graphics.fillRoundedRect(24, 58, 8, 6, 2);
+          graphics.fillRoundedRect(32, 58, 8, 6, 2);
+          // Boot buckle detail
+          graphics.fillStyle(0x888888);
+          graphics.fillRect(26, 60, 4, 1);
+          graphics.fillRect(34, 60, 4, 1);
+          
+          // Body - black band t-shirt or gothic top
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(22, 28, 20, 22, 4);
+          // Twilight logo hint on shirt
+          graphics.fillStyle(0x800000);
+          graphics.fillEllipse(32, 36, 6, 6);
+          // Apple silhouette (Twilight book cover reference)
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillEllipse(32, 35, 3, 3);
+          // Red trim on neckline
+          graphics.fillStyle(0x800000);
+          graphics.fillRect(28, 28, 8, 2);
+          
+          // Arms in black sleeves
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(14, 30, 8, 14, 3);
+          graphics.fillRoundedRect(42, 30, 8, 14, 3);
+          // Pale hands
+          graphics.fillStyle(0xFFF0F0);
+          graphics.fillCircle(18, 46, 4);
+          graphics.fillCircle(46, 46, 4);
+          
+          // Holding a book (Twilight!)
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(12, 42, 10, 14, 2);
+          graphics.fillStyle(0x800000); // Red for Twilight cover
+          graphics.fillRect(14, 44, 6, 10);
+          
+          // Neck
+          graphics.fillStyle(0xFFF0F0); // Pale skin
+          graphics.fillRect(28, 18, 8, 12);
+          // Black choker necklace
+          graphics.fillStyle(0x000000);
+          graphics.fillRect(28, 24, 8, 2);
+          
+          // Head - pale skin
+          graphics.fillStyle(0xFFF0F0);
+          graphics.fillCircle(32, 12, 12);
+          
+          // LONG BLOND HAIR - flowing and beautiful
+          graphics.fillStyle(0xFFD700);
+          // Hair top
+          graphics.fillEllipse(32, 4, 14, 10);
+          graphics.fillEllipse(32, 2, 12, 8);
+          // Long flowing hair on sides going down
+          graphics.fillEllipse(18, 14, 6, 16);
+          graphics.fillEllipse(46, 14, 6, 16);
+          // Hair flowing over shoulders
+          graphics.fillEllipse(16, 28, 5, 12);
+          graphics.fillEllipse(48, 28, 5, 12);
+          // Hair tips
+          graphics.fillEllipse(15, 38, 4, 8);
+          graphics.fillEllipse(49, 38, 4, 8);
+          // Bangs
+          graphics.fillRect(24, 0, 16, 6);
+          // Hair shine/highlights
+          graphics.fillStyle(0xFFE55C);
+          graphics.fillEllipse(26, 2, 4, 3);
+          graphics.fillEllipse(38, 2, 4, 3);
+          graphics.fillEllipse(18, 20, 2, 6);
+          graphics.fillEllipse(46, 20, 2, 6);
+          
+          // Eyes - dramatic with eyeliner
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(27, 12, 4, 3);
+          graphics.fillEllipse(37, 12, 4, 3);
+          // Golden/amber eyes (like vampire!)
+          graphics.fillStyle(0xDAA520);
+          graphics.fillCircle(27, 12, 2);
+          graphics.fillCircle(37, 12, 2);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(27, 12, 1);
+          graphics.fillCircle(37, 12, 1);
+          // Eye shine
+          graphics.fillStyle(0xffffff);
+          graphics.fillCircle(26, 11, 0.8);
+          graphics.fillCircle(36, 11, 0.8);
+          // Eyeliner/dramatic lashes
+          graphics.fillStyle(0x000000);
+          graphics.fillRoundedRect(23, 10, 8, 1.5, 1);
+          graphics.fillRoundedRect(33, 10, 8, 1.5, 1);
+          
+          // Eyebrows
+          graphics.fillStyle(0xDAA520);
+          graphics.fillRoundedRect(24, 7, 6, 1.5, 1);
+          graphics.fillRoundedRect(34, 7, 6, 1.5, 1);
+          
+          // Red/dark lipstick
+          graphics.fillStyle(0x800000);
+          graphics.fillEllipse(32, 17, 4, 1.5);
+          
+          // Nose
+          graphics.fillStyle(0xFFE4E1);
+          graphics.fillEllipse(32, 15, 2, 1.5);
+          
+          // Ears (hidden by hair mostly)
+          graphics.fillStyle(0xFFF0F0);
+          graphics.fillEllipse(19, 12, 2, 3);
+          graphics.fillEllipse(45, 12, 2, 3);
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Martine - blond woman in black, Twilight fan');
+          return;
+        }
+        
+        // ANNA - Danish woman with dark hair
+        if ((style as any).isAnna) {
+          // Shadow
+          graphics.fillStyle(0x000000, 0.3);
+          graphics.fillEllipse(32, 60, 18, 4);
+          
+          // Legs with dark blue jeans
+          graphics.fillStyle(0x1a3a5c);
+          graphics.fillRoundedRect(26, 48, 6, 14, 2);
+          graphics.fillRoundedRect(32, 48, 6, 14, 2);
+          // Black ankle boots
+          graphics.fillStyle(0x1a1a1a);
+          graphics.fillRoundedRect(24, 58, 8, 6, 2);
+          graphics.fillRoundedRect(32, 58, 8, 6, 2);
+          
+          // Body - red/maroon sweater (Danish color)
+          graphics.fillStyle(0xC41E3A);
+          graphics.fillRoundedRect(22, 28, 20, 22, 4);
+          // Sweater neckline
+          graphics.fillStyle(0xB01030);
+          graphics.fillEllipse(32, 28, 6, 3);
+          // White cross hint (Danish flag)
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRect(30, 32, 4, 14);
+          graphics.fillRect(24, 38, 16, 3);
+          
+          // Arms in red sweater
+          graphics.fillStyle(0xC41E3A);
+          graphics.fillRoundedRect(14, 30, 8, 14, 3);
+          graphics.fillRoundedRect(42, 30, 8, 14, 3);
+          // Hands
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(18, 46, 4);
+          graphics.fillCircle(46, 46, 4);
+          
+          // Small Danish flag in hand
+          graphics.fillStyle(0xC41E3A);
+          graphics.fillRect(8, 42, 12, 8);
+          graphics.fillStyle(0xFFFFFF);
+          graphics.fillRect(11, 42, 3, 8);
+          graphics.fillRect(8, 45, 12, 2);
+          // Flag pole
+          graphics.fillStyle(0x8B4513);
+          graphics.fillRect(7, 38, 2, 14);
+          
+          // Neck
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillRect(28, 20, 8, 10);
+          
+          // Head
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillCircle(32, 12, 12);
+          
+          // DARK HAIR - long and flowing
+          graphics.fillStyle(0x1a1209);
+          // Hair top
+          graphics.fillEllipse(32, 4, 14, 10);
+          graphics.fillEllipse(32, 2, 12, 8);
+          // Long dark hair on sides
+          graphics.fillEllipse(18, 14, 6, 16);
+          graphics.fillEllipse(46, 14, 6, 16);
+          // Hair flowing over shoulders
+          graphics.fillEllipse(16, 28, 5, 12);
+          graphics.fillEllipse(48, 28, 5, 12);
+          // Hair tips
+          graphics.fillEllipse(15, 38, 4, 8);
+          graphics.fillEllipse(49, 38, 4, 8);
+          // Bangs/fringe
+          graphics.fillRect(24, 0, 16, 6);
+          // Side swept bangs
+          graphics.fillEllipse(24, 6, 6, 4);
+          // Hair shine/highlights
+          graphics.fillStyle(0x2a2219);
+          graphics.fillEllipse(26, 2, 4, 3);
+          graphics.fillEllipse(38, 4, 3, 2);
+          
+          // Eyes - warm and friendly
+          graphics.fillStyle(0xffffff);
+          graphics.fillEllipse(27, 12, 4, 3);
+          graphics.fillEllipse(37, 12, 4, 3);
+          // Blue eyes (Scandinavian!)
+          graphics.fillStyle(0x4169E1);
+          graphics.fillCircle(27, 12, 2);
+          graphics.fillCircle(37, 12, 2);
+          graphics.fillStyle(0x000000);
+          graphics.fillCircle(27, 12, 1);
+          graphics.fillCircle(37, 12, 1);
+          // Eye shine
+          graphics.fillStyle(0xffffff);
+          graphics.fillCircle(26, 11, 0.8);
+          graphics.fillCircle(36, 11, 0.8);
+          
+          // Dark eyebrows
+          graphics.fillStyle(0x1a1209);
+          graphics.fillRoundedRect(24, 8, 6, 1.5, 1);
+          graphics.fillRoundedRect(34, 8, 6, 1.5, 1);
+          
+          // Friendly smile
+          graphics.fillStyle(0xCC6666);
+          graphics.fillEllipse(32, 17, 4, 2);
+          
+          // Nose
+          graphics.fillStyle(0xFFCCB5);
+          graphics.fillEllipse(32, 14, 2, 2);
+          
+          // Ears (mostly hidden by hair)
+          graphics.fillStyle(0xFFDBB5);
+          graphics.fillEllipse(19, 12, 2, 3);
+          graphics.fillEllipse(45, 12, 2, 3);
+          
+          // Small earrings
+          graphics.fillStyle(0xFFD700);
+          graphics.fillCircle(19, 14, 1.5);
+          graphics.fillCircle(45, 14, 1.5);
+          
+          graphics.generateTexture(key, 64, 64);
+          graphics.destroy();
+          console.log('Created Anna - Danish woman with dark hair');
+          return;
+        }
+        
         // IMPROVED Regular enemy sprite generation
         // Shadow
         graphics.fillStyle(0x000000, 0.3);
@@ -928,6 +1845,120 @@ export default class PreloadScene extends Phaser.Scene {
       graphics.generateTexture('office-tiles', 32, 32);
       graphics.destroy();
     }
+    
+    // Create Jens Stoltenberg portrait for victory screen
+    // Based on photo: gray-haired man, glasses, navy suit, white shirt, dark tie, friendly smile
+    if (!this.textures.exists('stoltenberg-portrait')) {
+      const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+      const size = 128; // Larger portrait for popup
+      const cx = size / 2; // Center x
+      const cy = size / 2; // Center y
+      
+      // Background gradient - soft blue/gray
+      graphics.fillStyle(0x2C3E50);
+      graphics.fillRect(0, 0, size, size);
+      graphics.fillStyle(0x34495E, 0.7);
+      graphics.fillRect(0, size/3, size, size*2/3);
+      
+      // Shoulders/suit - dark navy blue
+      graphics.fillStyle(0x1a2634);
+      graphics.fillRect(cx - 50, cy + 30, 100, 50);
+      // Suit lapels
+      graphics.fillStyle(0x151d26);
+      graphics.fillTriangle(cx - 50, cy + 30, cx - 20, cy + 30, cx - 35, cy + 60);
+      graphics.fillTriangle(cx + 50, cy + 30, cx + 20, cy + 30, cx + 35, cy + 60);
+      
+      // White shirt collar
+      graphics.fillStyle(0xFFFFFF);
+      graphics.fillTriangle(cx - 18, cy + 30, cx - 8, cy + 30, cx - 13, cy + 50);
+      graphics.fillTriangle(cx + 18, cy + 30, cx + 8, cy + 30, cx + 13, cy + 50);
+      
+      // Dark tie
+      graphics.fillStyle(0x0a1020);
+      graphics.fillTriangle(cx - 6, cy + 30, cx + 6, cy + 30, cx, cy + 60);
+      
+      // Neck
+      graphics.fillStyle(0xE8BEAC);
+      graphics.fillRect(cx - 10, cy + 18, 20, 18);
+      
+      // Face - lighter skin tone
+      graphics.fillStyle(0xF5D6C6);
+      graphics.fillCircle(cx, cy, 32);
+      
+      // Face shading for depth
+      graphics.fillStyle(0xE8BEAC, 0.5);
+      graphics.fillCircle(cx - 18, cy + 5, 12);
+      graphics.fillCircle(cx + 18, cy + 5, 12);
+      
+      // Ears
+      graphics.fillStyle(0xE8BEAC);
+      graphics.fillCircle(cx - 30, cy, 6);
+      graphics.fillCircle(cx + 30, cy, 6);
+      
+      // Gray hair - distinguished silver
+      graphics.fillStyle(0x9CA3AF);
+      graphics.fillCircle(cx, cy - 16, 26);
+      graphics.fillStyle(0xB0B8C4);
+      graphics.fillCircle(cx, cy - 18, 22);
+      // Hair sides/temples
+      graphics.fillStyle(0x9CA3AF);
+      graphics.fillEllipse(cx - 26, cy - 6, 10, 16);
+      graphics.fillEllipse(cx + 26, cy - 6, 10, 16);
+      
+      // Forehead (face color to cover bottom of hair)
+      graphics.fillStyle(0xF5D6C6);
+      graphics.fillEllipse(cx, cy - 6, 26, 18);
+      
+      // Eyebrows - gray
+      graphics.fillStyle(0x808890);
+      graphics.fillRect(cx - 20, cy - 10, 14, 3);
+      graphics.fillRect(cx + 6, cy - 10, 14, 3);
+      
+      // Eyes (no glasses)
+      graphics.fillStyle(0xFFFFFF);
+      graphics.fillCircle(cx - 14, cy - 2, 5);
+      graphics.fillCircle(cx + 14, cy - 2, 5);
+      graphics.fillStyle(0x4A6FA5); // Blue-gray eyes
+      graphics.fillCircle(cx - 14, cy - 2, 3);
+      graphics.fillCircle(cx + 14, cy - 2, 3);
+      graphics.fillStyle(0x000000);
+      graphics.fillCircle(cx - 14, cy - 2, 1.5);
+      graphics.fillCircle(cx + 14, cy - 2, 1.5);
+      
+      // Nose
+      graphics.lineStyle(1.5, 0xD4A690);
+      graphics.lineBetween(cx, cy - 2, cx - 2, cy + 8);
+      graphics.lineBetween(cx - 2, cy + 8, cx, cy + 10);
+      graphics.lineBetween(cx, cy + 10, cx + 2, cy + 8);
+      
+      // Friendly smile
+      graphics.lineStyle(2, 0xB57B6D);
+      graphics.beginPath();
+      graphics.arc(cx, cy + 14, 12, 0.3, Math.PI - 0.3, false);
+      graphics.strokePath();
+      
+      // Slight teeth showing (friendly smile)
+      graphics.fillStyle(0xFFF8F0);
+      graphics.fillRect(cx - 8, cy + 14, 16, 4);
+      
+      // Smile lines (crow's feet) - adds warmth
+      graphics.lineStyle(1, 0xD4A690, 0.5);
+      graphics.lineBetween(cx - 24, cy + 2, cx - 28, cy - 1);
+      graphics.lineBetween(cx + 24, cy + 2, cx + 28, cy - 1);
+      
+      graphics.generateTexture('stoltenberg-portrait', size, size);
+      graphics.destroy();
+      console.log('Created Jens Stoltenberg portrait for victory screen');
+    }
+    
+    // Create simple particle texture for confetti effects
+    if (!this.textures.exists('particle')) {
+      const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+      graphics.fillStyle(0xFFFFFF);
+      graphics.fillCircle(4, 4, 4);
+      graphics.generateTexture('particle', 8, 8);
+      graphics.destroy();
+    }
   }
   
   private createPlayerAnimations() {
@@ -987,28 +2018,117 @@ export default class PreloadScene extends Phaser.Scene {
           this.registry.set('defeatedBosses', savedState.defeatedBosses);
           this.registry.set('playTime', savedState.playTime);
           
-          this.scene.start('OfficeScene', {
-            spawnPosition: savedState.position,
-            currentZone: savedState.currentZone
-          });
+          // Check if save has level info, otherwise go to level select
+          const savedLevel = savedState.level || 'office';
+          const targetScene = savedLevel === 'kielland' ? 'KiellandScene' : 'OfficeScene';
+          
+          // Ask player if they want to continue or start fresh
+          this.showContinuePrompt(savedState, targetScene);
         } else {
-          // New game
-          this.startNewGame();
+          // New game - go to level select
+          this.initNewGameAndSelectLevel();
         }
       } catch (error) {
         console.error('Failed to load game state:', error);
-        this.startNewGame();
+        this.initNewGameAndSelectLevel();
       }
     } else {
-      // No API available (shouldn't happen, but handle gracefully)
-      this.startNewGame();
+      // No API available
+      this.initNewGameAndSelectLevel();
     }
     
     // Launch UI overlay
     this.scene.launch('UIScene');
   }
   
-  private startNewGame() {
+  private showContinuePrompt(savedState: any, targetScene: string) {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    // Background
+    const bg = this.add.rectangle(width / 2, height / 2, 500, 250, 0x000000, 0.9);
+    bg.setStrokeStyle(2, 0x0066CC);
+    
+    // Title
+    const title = this.add.text(width / 2, height / 2 - 80, '🎮 Save Data Found!', {
+      fontSize: '24px',
+      fontFamily: 'monospace',
+      color: '#FFD700',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    
+    // Save info
+    const stats = savedState.playerStats;
+    const info = this.add.text(width / 2, height / 2 - 30, 
+      `Level: ${stats.level} | Gold: ${stats.gold} | Zone: ${savedState.currentZone}`, {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#aaaaaa'
+    }).setOrigin(0.5);
+    
+    // Continue button
+    const continueBtn = this.add.text(width / 2, height / 2 + 20, '[ CONTINUE ]', {
+      fontSize: '20px',
+      fontFamily: 'monospace',
+      color: '#00FF00',
+      backgroundColor: '#003300',
+      padding: { x: 20, y: 10 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    
+    // New game button
+    const newGameBtn = this.add.text(width / 2, height / 2 + 70, '[ NEW GAME - Level Select ]', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#FF6600',
+      backgroundColor: '#331100',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    
+    // Button hover effects
+    continueBtn.on('pointerover', () => continueBtn.setColor('#00FF00').setScale(1.05));
+    continueBtn.on('pointerout', () => continueBtn.setColor('#00FF00').setScale(1));
+    newGameBtn.on('pointerover', () => newGameBtn.setColor('#FF8800').setScale(1.05));
+    newGameBtn.on('pointerout', () => newGameBtn.setColor('#FF6600').setScale(1));
+    
+    // Continue game
+    continueBtn.on('pointerdown', () => {
+      bg.destroy();
+      title.destroy();
+      info.destroy();
+      continueBtn.destroy();
+      newGameBtn.destroy();
+      
+      this.scene.start(targetScene, {
+        spawnPosition: savedState.position,
+        currentZone: savedState.currentZone
+      });
+    });
+    
+    // New game
+    newGameBtn.on('pointerdown', () => {
+      bg.destroy();
+      title.destroy();
+      info.destroy();
+      continueBtn.destroy();
+      newGameBtn.destroy();
+      
+      this.initNewGameAndSelectLevel();
+    });
+    
+    // Keyboard shortcuts
+    const enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    const nKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.N);
+    
+    enterKey.once('down', () => {
+      continueBtn.emit('pointerdown');
+    });
+    
+    nKey.once('down', () => {
+      newGameBtn.emit('pointerdown');
+    });
+  }
+  
+  private initNewGameAndSelectLevel() {
     // Initialize new game state
     this.registry.set('playerStats', {
       level: 1,
@@ -1024,11 +2144,8 @@ export default class PreloadScene extends Phaser.Scene {
     this.registry.set('defeatedBosses', []);
     this.registry.set('playTime', 0);
     
-    // Start in lobby
-    this.scene.start('OfficeScene', {
-      spawnPosition: { x: 400, y: 300 },
-      currentZone: 'lobby'
-    });
+    // Go to level select
+    this.scene.start('LevelSelectScene');
   }
   
   private createLoadingBar() {

@@ -748,6 +748,20 @@ export default class OfficeScene extends Phaser.Scene {
       backgroundColor: '#000000',
       padding: { x: 10, y: 10 }
     }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+    
+    // ESC key hint
+    this.add.text(750, 50, 'Press ESC for menu', {
+      fontSize: '12px',
+      color: '#aaaaaa',
+      backgroundColor: '#000000',
+      padding: { x: 5, y: 3 }
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+    
+    // ESC key to return to level select
+    const escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    escKey.on('down', () => {
+      this.scene.start('LevelSelectScene');
+    });
   }
   
   private spawnEnemies() {
@@ -792,6 +806,12 @@ export default class OfficeScene extends Phaser.Scene {
     
     // Spawn Fredrik - the drummer who loves pop quizzes!
     this.spawnFredrik();
+    
+    // Spawn Henrik - the Dark Souls expert!
+    this.spawnHenrik();
+    
+    // Spawn Nils - the good boy who speaks dog language!
+    this.spawnNils();
     
     console.log('Total enemies spawned:', this.enemies.length);
   }
@@ -1071,17 +1091,109 @@ export default class OfficeScene extends Phaser.Scene {
     }).setDepth(7).setOrigin(0.5);
   }
   
+  private spawnHenrik() {
+    // Henrik spawns in the research area - he's a Dark Souls expert!
+    const henrikX = 1150;
+    const henrikY = 700;
+    
+    const henrik = this.physics.add.sprite(henrikX, henrikY, 'enemy-henrik');
+    henrik.setScale(1.0);
+    henrik.setDepth(6);
+    
+    // Hitbox for Henrik
+    henrik.body!.setSize(16, 16);
+    henrik.body!.setOffset(24, 24);
+    
+    henrik.setImmovable(true);
+    
+    // Store zone info
+    (henrik as any).zone = 'research';
+    (henrik as any).isHenrik = true;
+    
+    this.enemies.push(henrik);
+    
+    // Collision with player triggers Henrik battle - validate actual overlap
+    this.physics.add.overlap(this.player, henrik, () => {
+      console.log('HENRIK ENCOUNTER! PREPARE TO DIE!');
+      this.triggerEnemyEncounter(henrik);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a label near Henrik
+    this.add.text(henrikX, henrikY - 45, '⚔️ Henrik', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      backgroundColor: '#800080',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
+  private spawnNils() {
+    // Nils the good boy spawns in the lobby - he loves attention!
+    const nilsX = 450;
+    const nilsY = 550;
+    
+    const nils = this.physics.add.sprite(nilsX, nilsY, 'enemy-nils');
+    nils.setScale(1.0);
+    nils.setDepth(6);
+    
+    // Hitbox for Nils
+    nils.body!.setSize(16, 16);
+    nils.body!.setOffset(24, 24);
+    
+    nils.setImmovable(true);
+    
+    // Store zone info
+    (nils as any).zone = 'lobby';
+    (nils as any).isNils = true;
+    
+    this.enemies.push(nils);
+    
+    // Collision with player triggers Nils battle
+    this.physics.add.overlap(this.player, nils, () => {
+      console.log('NILS ENCOUNTER! WOOF WOOF!');
+      this.triggerEnemyEncounter(nils);
+    }, (player, enemySprite) => {
+      const playerBody = (player as Phaser.Physics.Arcade.Sprite).body!;
+      const enemyBody = (enemySprite as Phaser.Physics.Arcade.Sprite).body!;
+      return Phaser.Geom.Intersects.RectangleToRectangle(
+        new Phaser.Geom.Rectangle(playerBody.x, playerBody.y, playerBody.width, playerBody.height),
+        new Phaser.Geom.Rectangle(enemyBody.x, enemyBody.y, enemyBody.width, enemyBody.height)
+      );
+    }, this);
+    
+    // Add a label near Nils
+    this.add.text(nilsX, nilsY - 40, '🐕 Nils', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      backgroundColor: '#8B4513',
+      padding: { x: 4, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
+  }
+  
   private triggerEnemyEncounter(enemySprite: Phaser.Physics.Arcade.Sprite) {
     // Prevent multiple triggers
     if (this.inBattle) return;
     this.inBattle = true;
     
-    // Check if this is Anders, Lars Hugo, Ole Jakob, Kristiane, or Fredrik
+    // Check if this is Anders, Lars Hugo, Ole Jakob, Kristiane, Fredrik, Henrik, or Nils
     const isAnders = (enemySprite as any).isAnders === true;
     const isLarsHugo = (enemySprite as any).isLarsHugo === true;
     const isOleJakob = (enemySprite as any).isOleJakob === true;
     const isKristiane = (enemySprite as any).isKristiane === true;
     const isFredrik = (enemySprite as any).isFredrik === true;
+    const isHenrik = (enemySprite as any).isHenrik === true;
+    const isNils = (enemySprite as any).isNils === true;
     const enemyZone = (enemySprite as any).zone || this.currentZone;
     
     // Remove the enemy sprite
@@ -1113,6 +1225,14 @@ export default class OfficeScene extends Phaser.Scene {
       // Use Fredrik from the ENEMIES data - pop quiz questions!
       enemy = ENEMIES['fredrik'];
       console.log('FREDRIK BATTLE! He asks pop quiz questions!');
+    } else if (isHenrik) {
+      // Use Henrik from the ENEMIES data - Dark Souls questions!
+      enemy = ENEMIES['henrik'];
+      console.log('HENRIK BATTLE! YOU DIED... just kidding. He asks Dark Souls questions!');
+    } else if (isNils) {
+      // Use Nils from the ENEMIES data - dog language questions! All answers are correct!
+      enemy = ENEMIES['nils'];
+      console.log('NILS BATTLE! WOOF WOOF! All answers are correct because he is a good boy!');
     } else {
       // Trigger battle with random enemy from the enemy's zone
       enemy = getRandomEnemy(enemyZone as 'finance' | 'hospitality' | 'research' | 'lobby');
