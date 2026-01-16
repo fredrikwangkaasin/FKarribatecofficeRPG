@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getRandomEnemy, getBossEnemy } from '../data/enemies';
+import { getRandomEnemy, getBossEnemy, ENEMIES } from '../data/enemies';
 import { PlayerStats } from '../data/gameState';
 
 /**
@@ -765,49 +765,121 @@ export default class OfficeScene extends Phaser.Scene {
         const y = zone.bounds.y + Phaser.Math.Between(50, zone.bounds.height - 50);
         
         const spriteKey = Phaser.Math.RND.pick(zoneEnemies);
-        const enemy = this.physics.add.sprite(x, y, spriteKey);
-        enemy.setScale(0.8);
-        enemy.setDepth(5);
-        
-        // Make collision box very small - must touch enemy center to trigger battle
-        enemy.body!.setSize(20, 20); // Tiny hitbox for precise touch
-        enemy.body!.setOffset(22, 22); // Center the hitbox on the sprite
-        
-        // Make enemy stationary (immovable)
-        enemy.setImmovable(true);
-        
-        // Store zone info on enemy
-        (enemy as any).zone = zone.name;
-        
-        // Enemy stands still - no patrol behavior
-        // Just add a subtle idle animation (breathing effect)
-        this.tweens.add({
-          targets: enemy,
-          scaleX: 0.82,
-          scaleY: 0.78,
-          duration: 1500,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
-        });
-        
-        this.enemies.push(enemy);
-        
-        // Collision with player triggers battle
-        this.physics.add.overlap(this.player, enemy, () => {
-          console.log('Enemy collision detected!');
-          this.triggerEnemyEncounter(enemy);
-        }, undefined, this);
+        this.spawnEnemy(x, y, spriteKey, zone.name);
       }
     });
     
+    // Spawn ANDERS in the lobby/corridor area - he's a special boss!
+    this.spawnAnders();
+    
     console.log('Total enemies spawned:', this.enemies.length);
+  }
+  
+  private spawnEnemy(x: number, y: number, spriteKey: string, zoneName: string) {
+    const enemy = this.physics.add.sprite(x, y, spriteKey);
+    enemy.setScale(0.8);
+    enemy.setDepth(5);
+    
+    // Make collision box very small - must touch enemy center to trigger battle
+    enemy.body!.setSize(20, 20); // Tiny hitbox for precise touch
+    enemy.body!.setOffset(22, 22); // Center the hitbox on the sprite
+    
+    // Make enemy stationary (immovable)
+    enemy.setImmovable(true);
+    
+    // Store zone info on enemy
+    (enemy as any).zone = zoneName;
+    
+    // Enemy stands still - no patrol behavior
+    // Just add a subtle idle animation (breathing effect)
+    this.tweens.add({
+      targets: enemy,
+      scaleX: 0.82,
+      scaleY: 0.78,
+      duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    
+    this.enemies.push(enemy);
+    
+    // Collision with player triggers battle
+    this.physics.add.overlap(this.player, enemy, () => {
+      console.log('Enemy collision detected!');
+      this.triggerEnemyEncounter(enemy);
+    }, undefined, this);
+  }
+  
+  private spawnAnders() {
+    // ANDERS spawns in the corridor near the break room - blocking the path!
+    const andersX = 450;
+    const andersY = 650;
+    
+    // Use a placeholder sprite for Anders (we'll use a colored rectangle)
+    const anders = this.physics.add.sprite(andersX, andersY, 'enemy-anders');
+    anders.setScale(1.2); // Anders is bigger!
+    anders.setDepth(6);
+    anders.setTint(0xFF0000); // Red tint to make Anders stand out
+    
+    // Larger hitbox for Anders - he's hard to avoid!
+    anders.body!.setSize(30, 30);
+    anders.body!.setOffset(17, 17);
+    
+    anders.setImmovable(true);
+    
+    // Store zone info
+    (anders as any).zone = 'lobby';
+    (anders as any).isAnders = true;
+    
+    // Anders has a more aggressive breathing animation
+    this.tweens.add({
+      targets: anders,
+      scaleX: 1.3,
+      scaleY: 1.1,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    
+    // Add pulsing red glow effect
+    this.tweens.add({
+      targets: anders,
+      alpha: 0.7,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    
+    this.enemies.push(anders);
+    
+    // Collision with player triggers Anders battle
+    this.physics.add.overlap(this.player, anders, () => {
+      console.log('ANDERS ENCOUNTER!');
+      this.triggerEnemyEncounter(anders);
+    }, undefined, this);
+    
+    // Add a warning label near Anders
+    this.add.text(andersX, andersY - 50, '⚠️ ANDERS', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#FF0000',
+      fontStyle: 'bold',
+      backgroundColor: '#000000',
+      padding: { x: 5, y: 2 }
+    }).setDepth(7).setOrigin(0.5);
   }
   
   private triggerEnemyEncounter(enemySprite: Phaser.Physics.Arcade.Sprite) {
     // Prevent multiple triggers
     if (this.inBattle) return;
     this.inBattle = true;
+    
+    // Check if this is Anders
+    const isAnders = (enemySprite as any).isAnders === true;
+    const enemyZone = (enemySprite as any).zone || this.currentZone;
     
     // Remove the enemy sprite
     const index = this.enemies.indexOf(enemySprite);
@@ -816,11 +888,20 @@ export default class OfficeScene extends Phaser.Scene {
     }
     enemySprite.destroy();
     
-    // Trigger battle with random enemy from current zone
-    const enemy = getRandomEnemy(this.currentZone);
+    // Get the appropriate enemy data
+    let enemy;
+    if (isAnders) {
+      // Use Anders from the ENEMIES data - he asks questions in CAPS!
+      enemy = ENEMIES['anders'];
+      console.log('ANDERS BATTLE! HE WILL ASK QUESTIONS IN CAPS!');
+    } else {
+      // Trigger battle with random enemy from the enemy's zone
+      enemy = getRandomEnemy(enemyZone as 'finance' | 'hospitality' | 'research' | 'lobby');
+    }
     
     if (!enemy) {
-      console.error('No enemies found for zone:', this.currentZone);
+      console.error('No enemies found for zone:', enemyZone);
+      this.inBattle = false;
       return;
     }
     

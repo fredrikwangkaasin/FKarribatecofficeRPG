@@ -16,7 +16,7 @@ export interface QuizQuestion {
 export interface EnemyData {
   id: string;
   displayName: string;
-  zone: 'finance' | 'hospitality' | 'research';
+  zone: 'finance' | 'hospitality' | 'research' | 'lobby';
   isBoss: boolean;
   
   // Stats
@@ -322,16 +322,143 @@ export const ENEMIES: Record<string, EnemyData> = {
     introText: 'The Lead Scientist demands peer review!',
     defeatText: 'The Lead Scientist acknowledges your scientific rigor!',
     questions: DEFAULT_QUESTIONS
+  },
+  
+  // ===== LOBBY ZONE - SPECIAL ENEMIES =====
+  'anders': {
+    id: 'anders',
+    displayName: 'ANDERS',
+    zone: 'lobby',
+    isBoss: true,
+    maxHP: 250,
+    difficulty: 9,
+    expReward: 150,
+    goldReward: 300,
+    spriteKey: 'enemy-anders',
+    introText: 'ANDERS BLOCKS YOUR PATH! HE DEMANDS YOU PROVE YOUR NEXUS KNOWLEDGE!',
+    defeatText: 'ANDERS IS IMPRESSED! YOU TRULY UNDERSTAND THE NEXUS PLATFORM!',
+    questions: [
+      {
+        question: 'WHAT IS THE NEXUS PLATFORM PRIMARILY DESIGNED FOR?',
+        answers: [
+          'SINGLE-USER DESKTOP APPLICATIONS',
+          'MULTI-TENANT WEB APPLICATIONS',
+          'MOBILE GAME DEVELOPMENT',
+          'CRYPTOCURRENCY MINING'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'WHAT AUTHENTICATION SYSTEM DOES THE NEXUS PLATFORM USE?',
+        answers: [
+          'BASIC AUTH WITH PLAIN PASSWORDS',
+          'NO AUTHENTICATION REQUIRED',
+          'KEYCLOAK WITH OAUTH2/OIDC AND JWT TOKENS',
+          'FINGERPRINT SCANNING ONLY'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'WHAT IS THE ONE-LINE SETUP METHOD CALLED IN ARRIBATEC.NEXUS.CLIENT?',
+        answers: [
+          'BUILDER.ADDNEXUSMAGIC()',
+          'BUILDER.ADDARRIBATECNEXUS()',
+          'BUILDER.SETUPEVERYTHING()',
+          'BUILDER.CONFIGURETENANT()'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'WHAT DOES THE MASTER API PROVIDE IN THE NEXUS PLATFORM?',
+        answers: [
+          'ONLY DATABASE BACKUPS',
+          'TENANT/USER/DATABASE MANAGEMENT',
+          'JUST EMAIL NOTIFICATIONS',
+          'ONLY LOGGING FUNCTIONALITY'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'WHAT MIDDLEWARE ORDER IS CRITICAL FOR V2.3.0?',
+        answers: [
+          'AUTHORIZATION -> AUTHENTICATION -> CORS',
+          'REQUESTCONTEXT -> CORS -> AUTHENTICATION -> NEXUSCONTEXT -> AUTHORIZATION',
+          'CORS -> AUTHORIZATION -> AUTHENTICATION',
+          'AUTHENTICATION -> REQUESTCONTEXT -> CORS'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'WHAT DATABASES DOES THE NEXUS PLATFORM SUPPORT VIA CONTEXT-AWARE CONNECTIONS?',
+        answers: [
+          'ONLY SQL SERVER',
+          'ONLY POSTGRESQL',
+          'SQL SERVER, POSTGRESQL, MYSQL, ORACLE',
+          'ONLY MONGODB'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'WHAT IS USED FOR STRUCTURED LOGGING IN THE NEXUS PLATFORM?',
+        answers: [
+          'CONSOLE.WRITELINE ONLY',
+          'SERILOG WITH CONSOLE, FILE, AND LOKI SINKS',
+          'NO LOGGING AVAILABLE',
+          'PRINT STATEMENTS'
+        ],
+        correctIndex: 1
+      },
+      {
+        question: 'WHAT DOES DYNAMIC JWT VALIDATION IN V2.3.0 ALLOW?',
+        answers: [
+          'STATIC KEYCLOAK CONFIGURATION ONLY',
+          'NO TOKEN VALIDATION',
+          'EACH TENANT CAN USE A DIFFERENT KEYCLOAK REALM',
+          'ONLY ONE REALM FOR ALL TENANTS'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'WHAT REVERSE PROXY DOES THE NEXUS PLATFORM USE?',
+        answers: [
+          'NGINX ONLY',
+          'APACHE',
+          'TRAEFIK WITH AUTOMATIC SSL',
+          'NO PROXY NEEDED'
+        ],
+        correctIndex: 2
+      },
+      {
+        question: 'HOW SHOULD TENANT DATA BE ISOLATED IN DATABASE QUERIES?',
+        answers: [
+          'NO ISOLATION NEEDED',
+          'ALWAYS FILTER BY TENANTID',
+          'USE SEPARATE SERVERS',
+          'ENCRYPT EVERYTHING'
+        ],
+        correctIndex: 1
+      }
+    ]
   }
 };
 
 /**
  * Get random enemy for a specific zone (excludes bosses from random encounters)
  */
-export function getRandomEnemy(zone: 'finance' | 'hospitality' | 'research'): EnemyData {
+export function getRandomEnemy(zone: 'finance' | 'hospitality' | 'research' | 'lobby'): EnemyData {
   const zoneEnemies = Object.values(ENEMIES).filter(
     enemy => enemy.zone === zone && !enemy.isBoss
   );
+  
+  // If no regular enemies in zone, return a boss (for lobby with only Anders)
+  if (zoneEnemies.length === 0) {
+    const bosses = Object.values(ENEMIES).filter(
+      enemy => enemy.zone === zone && enemy.isBoss
+    );
+    if (bosses.length > 0) {
+      return bosses[Math.floor(Math.random() * bosses.length)];
+    }
+  }
   
   return zoneEnemies[Math.floor(Math.random() * zoneEnemies.length)];
 }
@@ -339,7 +466,7 @@ export function getRandomEnemy(zone: 'finance' | 'hospitality' | 'research'): En
 /**
  * Get boss enemy for a specific zone
  */
-export function getBossEnemy(zone: 'finance' | 'hospitality' | 'research'): EnemyData {
+export function getBossEnemy(zone: 'finance' | 'hospitality' | 'research' | 'lobby'): EnemyData {
   const boss = Object.values(ENEMIES).find(
     enemy => enemy.zone === zone && enemy.isBoss
   );

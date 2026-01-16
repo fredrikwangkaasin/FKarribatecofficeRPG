@@ -253,10 +253,17 @@ export default class BattleScene extends Phaser.Scene {
   
   /**
    * Get the next question - tries LLM API first, falls back to static questions
+   * Anders is special - he ALWAYS uses his static CAPS questions!
    */
   private async getNextQuestion(): Promise<QuizQuestion | null> {
     // Reset questionId for each new question
     this.currentQuestionId = null;
+    
+    // ANDERS ALWAYS uses his own CAPS questions - no API fetch!
+    if (this.enemy.id === 'anders') {
+      console.log('ANDERS USES HIS OWN CAPS QUESTIONS!');
+      return this.getStaticQuestion();
+    }
     
     // Check cache first
     if (this.questionCache.length > 0) {
