@@ -23,12 +23,16 @@ export default class OfficeScene extends Phaser.Scene {
   private currentZone = 'finance'; // Default to finance zone
   private inEncounterZone = false;
   private enemies: Phaser.Physics.Arcade.Sprite[] = [];
+  private inBattle = false; // Prevent multiple battle triggers
 
   constructor() {
     super('OfficeScene');
   }
 
   init(data: any) {
+    // Reset battle flag when scene initializes
+    this.inBattle = false;
+    
     // Restore position if returning from battle
     if (data.spawnPosition) {
       this.registry.set('spawnPosition', data.spawnPosition);
@@ -73,14 +77,11 @@ export default class OfficeScene extends Phaser.Scene {
     const spawnPos = this.registry.get('spawnPosition') || { x: 400, y: 300 };
     this.player = this.physics.add.sprite(spawnPos.x, spawnPos.y, 'player');
     this.player.setDepth(10);
+    this.player.body!.setSize(16, 16); // Small hitbox for precise collision
+    this.player.body!.setOffset(8, 16); // Center on feet
     this.player.play('player-idle-down');
     
-    // Collision with walls
-    if (wallsLayer) {
-      this.physics.add.collider(this.player, wallsLayer);
-    }
-    
-    // Camera follows player
+    // Camera follows player (no wall collisions)
     this.cameras.main.startFollow(this.player, true);
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     
@@ -120,17 +121,11 @@ export default class OfficeScene extends Phaser.Scene {
     const targetX = this.player.x + dx * this.tileSize;
     const targetY = this.player.y + dy * this.tileSize;
     
-    // Check collision - only if using tilemap
-    if (this.map) {
-      const tile = this.map.getTileAtWorldXY(targetX, targetY, false, undefined, 'Walls');
-      if (tile && tile.properties.collides) {
-        return;
-      }
-    } else {
-      // Simple bounds check for fallback map (1600x1280)
-      if (targetX < 40 || targetX > 1560 || targetY < 40 || targetY > 1240) {
-        return;
-      }
+    // Only check map bounds - no wall collisions
+    const mapWidth = this.map ? this.map.widthInPixels : 1600;
+    const mapHeight = this.map ? this.map.heightInPixels : 1280;
+    if (targetX < 40 || targetX > mapWidth - 40 || targetY < 40 || targetY > mapHeight - 40) {
+      return;
     }
     
     this.isMoving = true;
@@ -152,6 +147,105 @@ export default class OfficeScene extends Phaser.Scene {
         this.afterMove();
       }
     });
+  }
+  
+  private checkWallCollision(x: number, y: number): boolean {
+    const playerSize = 16; // Half of player sprite width for center-based collision
+    
+    // Helper function to check if point is inside a rectangle
+    const inRect = (px: number, py: number, rx: number, ry: number, rw: number, rh: number): boolean => {
+      return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+    };
+    
+    // Check outer walls
+    if (x < 35 || x > 1565 || y < 35 || y > 1245) return true;
+    
+    // Check RESEARCH ZONE walls (with door gaps)
+    // Top wall - door at x=250 to x=310
+    if (inRect(x, y, 20, 100, 230, 15)) return true; // Left of door
+    if (inRect(x, y, 310, 100, 290, 15)) return true; // Right of door
+    // Left boundary
+    if (inRect(x, y, 20, 115, 15, 385)) return true; // Left (below top wall)
+    // Bottom wall - door at x=150 to x=210
+    if (inRect(x, y, 20, 500, 130, 15)) return true; // Left of door
+    if (inRect(x, y, 210, 500, 110, 15)) return true; // Right of door
+    // Right boundary
+    if (inRect(x, y, 600, 115, 15, 385)) return true; // Right (below top wall)
+    
+    // Check FINANCE ZONE walls (with door gaps)
+    // Top wall - door at x=1150 to x=1210
+    if (inRect(x, y, 900, 800, 250, 15)) return true; // Left of door
+    if (inRect(x, y, 1210, 800, 290, 15)) return true; // Right of door
+    // Left boundary
+    if (inRect(x, y, 900, 815, 15, 365)) return true; // Left (below top wall)
+    // Bottom wall - door at x=1050 to x=1110
+    if (inRect(x, y, 900, 1180, 150, 15)) return true; // Left of door
+    if (inRect(x, y, 1110, 1180, 390, 15)) return true; // Right of door
+    // Right boundary
+    if (inRect(x, y, 1480, 815, 15, 365)) return true; // Right (below top wall)
+    
+    // Check HOSPITALITY ZONE walls (with door gaps)
+    // Top wall - door at x=650 to x=710
+    if (inRect(x, y, 500, 900, 150, 15)) return true; // Left of door
+    if (inRect(x, y, 710, 900, 190, 15)) return true; // Right of door
+    // Left boundary
+    if (inRect(x, y, 500, 915, 15, 265)) return true; // Left (below top wall)
+    // Bottom wall - door at x=600 to x=660
+    if (inRect(x, y, 500, 1180, 100, 15)) return true; // Left of door
+    if (inRect(x, y, 660, 1180, 240, 15)) return true; // Right of door
+    // Right boundary
+    if (inRect(x, y, 885, 915, 15, 265)) return true; // Right (below top wall)
+    
+    // Check BREAK ROOM walls (with door gaps)
+    // Top wall - door at x=740 to x=790
+    if (inRect(x, y, 600, 500, 140, 15)) return true; // Left of door
+    if (inRect(x, y, 790, 500, 110, 15)) return true; // Right of door
+    // Left boundary
+    if (inRect(x, y, 600, 515, 15, 220)) return true; // Left (below top wall)
+    // Bottom wall - door at x=740 to x=790
+    if (inRect(x, y, 600, 735, 140, 15)) return true; // Left of door
+    if (inRect(x, y, 790, 735, 110, 15)) return true; // Right of door
+    // Right boundary
+    if (inRect(x, y, 885, 515, 15, 220)) return true; // Right (below top wall)
+    
+    // Check corridor walls (with gaps for zone access)
+    // Vertical corridor left - need gap to access hospitality/break room
+    if (inRect(x, y, 320, 500, 15, 350)) return true;
+    // Vertical corridor center - need gap at bottom
+    if (inRect(x, y, 615, 150, 15, 350)) return true;
+    // Horizontal corridor bottom - gaps for zone entrances
+    // Gap at ~650-710 for hospitality, ~1050-1110 for finance
+    if (inRect(x, y, 20, 850, 480, 15)) return true; // Left section
+    if (inRect(x, y, 710, 850, 340, 15)) return true; // Middle section
+    if (inRect(x, y, 1210, 850, 370, 15)) return true; // Right section
+    
+    // Check meeting room walls
+    if (inRect(x, y, 150, 150, 15, 150)) return true;
+    if (inRect(x, y, 450, 150, 15, 150)) return true;
+    
+    // Check desks as obstacles
+    // Finance desks
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (inRect(x, y, 950 + j * 120, 850 + i * 100, 80, 40)) return true;
+      }
+    }
+    
+    // Hospitality desks
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (inRect(x, y, 550 + j * 100, 950 + i * 100, 70, 35)) return true;
+      }
+    }
+    
+    // Research desks
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (inRect(x, y, 150 + j * 100, 150 + i * 100, 70, 35)) return true;
+      }
+    }
+    
+    return false; // No collision
   }
   
   private afterMove() {
@@ -440,8 +534,8 @@ export default class OfficeScene extends Phaser.Scene {
       graphics.lineBetween(600 + i * 30, 500, 600 + i * 30 + 30, 750);
     }
     
-    // Draw walls and corridors (dark gray)
-    graphics.fillStyle(0x424242, 1);
+    // Draw walls and corridors
+    graphics.fillStyle(0x424242, 1); // Dark gray walls
     
     // Outer walls
     graphics.fillRect(0, 0, mapWidth, 20); // Top
@@ -449,18 +543,88 @@ export default class OfficeScene extends Phaser.Scene {
     graphics.fillRect(mapWidth - 20, 0, 20, mapHeight); // Right
     graphics.fillRect(0, mapHeight - 20, mapWidth, 20); // Bottom
     
-    // Interior walls (rooms)
-    // Vertical corridors
-    graphics.fillRect(600, 0, 15, 500); // Main vertical corridor
-    graphics.fillRect(600, 750, 15, mapHeight - 750);
+    // RESEARCH ZONE walls (top left) - with door gaps
+    // Top boundary - door at x=250 (60 wide)
+    graphics.fillRect(20, 100, 230, 15); // Left of door
+    graphics.fillRect(310, 100, 290, 15); // Right of door
+    // Left boundary  
+    graphics.fillRect(20, 115, 15, 385);
+    // Bottom boundary - door at x=150 (60 wide)
+    graphics.fillRect(20, 500, 130, 15); // Left of door
+    graphics.fillRect(210, 500, 110, 15); // Right of door
+    // Right boundary
+    graphics.fillRect(600, 115, 15, 385);
     
-    // Horizontal corridors
-    graphics.fillRect(0, 500, 600, 15);
-    graphics.fillRect(0, 850, mapWidth, 15);
+    // FINANCE ZONE walls (bottom right) - with door gaps
+    // Top boundary - door at x=1150 (60 wide)
+    graphics.fillRect(900, 800, 250, 15); // Left of door
+    graphics.fillRect(1210, 800, 290, 15); // Right of door
+    // Left boundary
+    graphics.fillRect(900, 815, 15, 365);
+    // Bottom boundary - door at x=1050 (60 wide)
+    graphics.fillRect(900, 1180, 150, 15); // Left of door
+    graphics.fillRect(1110, 1180, 390, 15); // Right of door
+    // Right boundary
+    graphics.fillRect(1480, 815, 15, 365);
     
-    // Meeting room walls
-    graphics.fillRect(400, 100, 15, 200);
-    graphics.fillRect(800, 400, 15, 200);
+    // HOSPITALITY ZONE walls (bottom center) - with door gaps
+    // Top boundary - door at x=650 (60 wide)
+    graphics.fillRect(500, 900, 150, 15); // Left of door
+    graphics.fillRect(710, 900, 190, 15); // Right of door
+    // Left boundary
+    graphics.fillRect(500, 915, 15, 265);
+    // Bottom boundary - door at x=600 (60 wide)
+    graphics.fillRect(500, 1180, 100, 15); // Left of door
+    graphics.fillRect(660, 1180, 240, 15); // Right of door
+    // Right boundary
+    graphics.fillRect(885, 915, 15, 265);
+    
+    // BREAK ROOM walls (center)
+    // Top boundary with door gap
+    graphics.fillRect(600, 500, 140, 15); // Left of door
+    graphics.fillRect(790, 500, 110, 15); // Right of door
+    // Left boundary
+    graphics.fillRect(600, 500, 15, 250);
+    // Bottom boundary with door gap
+    graphics.fillRect(600, 735, 140, 15); // Left of door
+    graphics.fillRect(790, 735, 110, 15); // Right of door
+    // Right boundary
+    graphics.fillRect(885, 500, 15, 250);
+    
+    // Main corridors
+    graphics.fillRect(320, 500, 15, 350); // Vertical corridor left
+    graphics.fillRect(615, 150, 15, 350); // Vertical corridor center
+    // Horizontal corridor bottom - with gaps for zone access
+    graphics.fillRect(20, 850, 480, 15); // Left section (to ~500)
+    graphics.fillRect(710, 850, 340, 15); // Middle section (~710 to ~1050)
+    graphics.fillRect(1210, 850, 370, 15); // Right section (~1210 to end)
+    
+    // Meeting room walls (research zone)
+    graphics.fillRect(150, 150, 15, 150); // Small meeting room wall
+    graphics.fillRect(450, 150, 15, 150); // Medium meeting room wall
+    
+    // Doors (lighter gray - walkable)
+    graphics.fillStyle(0x8B8B8B, 1); // Light gray for doors
+    
+    // Research zone doors
+    graphics.fillRect(250, 100, 60, 15); // Top entrance
+    graphics.fillRect(150, 500, 60, 15); // Bottom exit
+    
+    // Finance zone doors
+    graphics.fillRect(1150, 800, 60, 15); // Top entrance
+    graphics.fillRect(1050, 1180, 60, 15); // Bottom exit
+    
+    // Hospitality zone doors
+    graphics.fillRect(650, 900, 60, 15); // Top entrance
+    graphics.fillRect(600, 1180, 60, 15); // Bottom exit
+    
+    // Break room doors
+    graphics.fillRect(740, 500, 50, 15); // North door
+    graphics.fillRect(740, 735, 50, 15); // South door
+    
+    // Corridor access doors (gaps in horizontal corridor)
+    graphics.fillRect(500, 850, 210, 15); // Hospitality access (y=850 is corridor)
+    graphics.fillRect(1050, 850, 160, 15); // Finance access
     
     // Desks (dark furniture) scattered in zones
     graphics.fillStyle(0x795548, 1); // Brown desks
@@ -538,6 +702,10 @@ export default class OfficeScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(spawnPos.x, spawnPos.y, 'player');
     this.player.setDepth(10);
     
+    // Set player hitbox smaller for precise enemy collision
+    this.player.body!.setSize(16, 16); // Small hitbox
+    this.player.body!.setOffset(8, 16); // Center it on feet
+    
     // Play animation safely
     if (this.anims.exists('player-idle-down')) {
       this.player.play('player-idle-down');
@@ -601,19 +769,23 @@ export default class OfficeScene extends Phaser.Scene {
         enemy.setScale(0.8);
         enemy.setDepth(5);
         
-        // Make collision box much smaller - only the center of the sprite
-        enemy.body!.setSize(32, 40); // Smaller hitbox (was 64x64)
-        enemy.body!.setOffset(16, 12); // Center the hitbox on the sprite
+        // Make collision box very small - must touch enemy center to trigger battle
+        enemy.body!.setSize(20, 20); // Tiny hitbox for precise touch
+        enemy.body!.setOffset(22, 22); // Center the hitbox on the sprite
+        
+        // Make enemy stationary (immovable)
+        enemy.setImmovable(true);
         
         // Store zone info on enemy
         (enemy as any).zone = zone.name;
         
-        // Add patrol behavior within zone
+        // Enemy stands still - no patrol behavior
+        // Just add a subtle idle animation (breathing effect)
         this.tweens.add({
           targets: enemy,
-          x: x + Phaser.Math.Between(-80, 80),
-          y: y + Phaser.Math.Between(-80, 80),
-          duration: Phaser.Math.Between(3000, 5000),
+          scaleX: 0.82,
+          scaleY: 0.78,
+          duration: 1500,
           yoyo: true,
           repeat: -1,
           ease: 'Sine.easeInOut'
@@ -633,6 +805,10 @@ export default class OfficeScene extends Phaser.Scene {
   }
   
   private triggerEnemyEncounter(enemySprite: Phaser.Physics.Arcade.Sprite) {
+    // Prevent multiple triggers
+    if (this.inBattle) return;
+    this.inBattle = true;
+    
     // Remove the enemy sprite
     const index = this.enemies.indexOf(enemySprite);
     if (index > -1) {

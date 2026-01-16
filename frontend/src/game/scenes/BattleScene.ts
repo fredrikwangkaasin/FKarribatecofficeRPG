@@ -1,25 +1,26 @@
 import Phaser from 'phaser';
-import { EnemyData } from '../data/enemies';
+import { EnemyData, QuizQuestion } from '../data/enemies';
 import { PlayerStats, shouldLevelUp, levelUpStats } from '../data/gameState';
+import { LlmApi, QuizQuestion as LlmQuizQuestion } from '../../utils/llmApi';
 
 enum BattleState {
   INTRO,
-  PLAYER_TURN,
-  PLAYER_ACTION,
-  ENEMY_TURN,
-  ENEMY_ACTION,
+  LOADING_QUESTION,
+  SHOWING_QUESTION,
+  WAITING_FOR_ANSWER,
+  ANSWER_RESULT,
   VICTORY,
   DEFEAT
 }
 
-interface ActionButton {
+interface AnswerButton {
   button: Phaser.GameObjects.Rectangle;
   text: Phaser.GameObjects.Text;
-  action: string;
+  answerIndex: number;
 }
 
 /**
- * BattleScene - Turn-based combat with logical argument actions
+ * BattleScene - Quiz-based combat with AI-generated office trivia questions
  */
 export default class BattleScene extends Phaser.Scene {
   private enemy!: EnemyData;
@@ -28,18 +29,24 @@ export default class BattleScene extends Phaser.Scene {
   private playerSprite!: Phaser.GameObjects.Sprite;
   
   private state: BattleState = BattleState.INTRO;
-  private actionButtons: ActionButton[] = [];
-  private selectedAction = 0;
+  private answerButtons: AnswerButton[] = [];
+  private currentQuestion!: QuizQuestion;
   
   private returnPosition!: { x: number; y: number };
   private returnZone!: string;
-  private isBossBattle = false;
   
   private messageText!: Phaser.GameObjects.Text;
+  private questionText!: Phaser.GameObjects.Text;
   private enemyHPBar!: Phaser.GameObjects.Graphics;
   private playerHPBar!: Phaser.GameObjects.Graphics;
   
   private playerStats!: PlayerStats;
+  
+  // LLM API for dynamic question generation
+  private llmApi: LlmApi | null = null;
+  private askedQuestions: string[] = [];
+  private questionCache: QuizQuestion[] = [];
+  private currentQuestionId: string | null = null; // Track DB question ID for marking answered
 
   constructor() {
     super('BattleScene');
@@ -50,9 +57,18 @@ export default class BattleScene extends Phaser.Scene {
     this.enemyHP = this.enemy.maxHP;
     this.returnPosition = data.returnPosition;
     this.returnZone = data.currentZone;
-    this.isBossBattle = data.isBossBattle || false;
     
     this.playerStats = { ...this.registry.get('playerStats') };
+    
+    // Initialize LLM API with token from registry
+    const token = this.registry.get('authToken');
+    if (token) {
+      this.llmApi = new LlmApi(token);
+    }
+    
+    // Reset question tracking for new battle
+    this.askedQuestions = [];
+    this.questionCache = [];
   }
 
   create() {
@@ -64,11 +80,11 @@ export default class BattleScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a1a);
     
     // Enemy sprite (top)
-    this.enemySprite = this.add.image(width / 2, 150, this.enemy.spriteKey);
+    this.enemySprite = this.add.image(width / 2, 120, this.enemy.spriteKey);
     this.enemySprite.setScale(2);
     
     // Enemy HP bar
-    this.add.text(width / 2, 250, `${this.enemy.displayName}`, {
+    this.add.text(width / 2, 210, `${this.enemy.displayName}`, {
       fontSize: '24px',
       fontFamily: 'monospace',
       color: '#ffffff',
@@ -77,18 +93,18 @@ export default class BattleScene extends Phaser.Scene {
     
     const enemyHPBg = this.add.graphics();
     enemyHPBg.fillStyle(0x330000, 1);
-    enemyHPBg.fillRoundedRect(width / 2 - 150, 280, 300, 25, 4);
+    enemyHPBg.fillRoundedRect(width / 2 - 150, 240, 300, 20, 4);
     
     this.enemyHPBar = this.add.graphics();
     
-    // Player sprite (bottom)
-    this.playerSprite = this.add.sprite(width / 2, 400, 'player');
+    // Player sprite (bottom right corner)
+    this.playerSprite = this.add.sprite(width - 80, height - 80, 'player');
     this.playerSprite.play('player-idle-down');
-    this.playerSprite.setScale(2);
+    this.playerSprite.setScale(1.5);
     
-    // Player HP bar
-    this.add.text(width / 2, 470, 'YOU', {
-      fontSize: '20px',
+    // Player HP bar (compact, bottom left)
+    this.add.text(100, height - 100, 'YOU', {
+      fontSize: '16px',
       fontFamily: 'monospace',
       color: '#0066CC',
       fontStyle: 'bold'
@@ -96,26 +112,41 @@ export default class BattleScene extends Phaser.Scene {
     
     const playerHPBg = this.add.graphics();
     playerHPBg.fillStyle(0x003300, 1);
-    playerHPBg.fillRoundedRect(width / 2 - 150, 495, 300, 25, 4);
+    playerHPBg.fillRoundedRect(30, height - 80, 140, 15, 4);
     
     this.playerHPBar = this.add.graphics();
     
-    // Message box
-    const messageBg = this.add.graphics();
-    messageBg.fillStyle(0x000000, 0.9);
-    messageBg.fillRoundedRect(50, height - 180, width - 100, 80, 8);
-    messageBg.lineStyle(2, 0x0066CC);
-    messageBg.strokeRoundedRect(50, height - 180, width - 100, 80, 8);
+    // Question box (center of screen)
+    const questionBg = this.add.graphics();
+    questionBg.fillStyle(0x000033, 0.95);
+    questionBg.fillRoundedRect(50, 280, width - 100, 120, 8);
+    questionBg.lineStyle(3, 0x0066CC);
+    questionBg.strokeRoundedRect(50, 280, width - 100, 120, 8);
     
-    this.messageText = this.add.text(70, height - 160, '', {
-      fontSize: '18px',
+    this.questionText = this.add.text(width / 2, 340, '', {
+      fontSize: '20px',
       fontFamily: 'monospace',
       color: '#ffffff',
+      align: 'center',
       wordWrap: { width: width - 140 }
-    });
+    }).setOrigin(0.5);
     
-    // Action menu
-    this.createActionMenu();
+    // Message box (bottom)
+    const messageBg = this.add.graphics();
+    messageBg.fillStyle(0x000000, 0.9);
+    messageBg.fillRoundedRect(50, height - 50, width - 100, 40, 8);
+    messageBg.lineStyle(2, 0x00CC00);
+    messageBg.strokeRoundedRect(50, height - 50, width - 100, 40, 8);
+    
+    this.messageText = this.add.text(width / 2, height - 30, '', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
+    
+    // Answer buttons
+    this.createAnswerButtons();
     
     // Update HP bars
     this.updateHPBars();
@@ -129,104 +160,229 @@ export default class BattleScene extends Phaser.Scene {
     console.log('BattleScene.startBattle() - Setting state to INTRO');
     this.state = BattleState.INTRO;
     this.showMessage(this.enemy.introText);
+    this.questionText.setText('');
     
-    this.time.delayedCall(2000, () => {
-      console.log('BattleScene - Changing to PLAYER_TURN');
-      this.state = BattleState.PLAYER_TURN;
-      this.showMessage('What will you do?');
-      this.showActionMenu();
+    this.time.delayedCall(2500, () => {
+      console.log('BattleScene - Showing first question');
+      this.askQuestion();
     });
   }
   
-  private createActionMenu() {
+  private createAnswerButtons() {
     const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    const buttonWidth = (width - 120) / 2;
+    const buttonHeight = 60;
+    const spacing = 20;
+    const startX = 60;
+    const startY = 420;
     
-    const actions = [
-      { name: 'ARGUE', desc: 'Present logical argument (25 dmg)' },
-      { name: 'DEFLECT', desc: 'Redirect conversation (18 dmg)' },
-      { name: 'EVIDENCE', desc: 'Present facts (33 dmg, high accuracy)' },
-      { name: 'PERSUADE', desc: 'Emotional appeal (18 dmg, may confuse)' }
-    ];
-    
-    const buttonWidth = 160;
-    const buttonHeight = 50;
-    const spacing = 10;
-    // Center the 2x2 grid of buttons
-    const totalWidth = buttonWidth * 2 + spacing;
-    const startX = (width - totalWidth) / 2 + buttonWidth / 2;
-    const startY = height - 80;
-    
-    actions.forEach((action, index) => {
-      const x = startX + (index % 2) * (buttonWidth + spacing);
-      const y = startY + Math.floor(index / 2) * (buttonHeight + spacing);
+    for (let i = 0; i < 4; i++) {
+      const x = startX + (i % 2) * (buttonWidth + spacing);
+      const y = startY + Math.floor(i / 2) * (buttonHeight + spacing);
       
-      const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x0066CC, 0.8);
-      button.setStrokeStyle(2, 0xffffff);
+      const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x004400, 0.9);
+      button.setStrokeStyle(3, 0x00AA00);
       button.setInteractive();
       button.setVisible(false);
+      button.setOrigin(0, 0);
       
-      const text = this.add.text(x, y, action.name, {
-        fontSize: '18px',
+      const text = this.add.text(x + buttonWidth / 2, y + buttonHeight / 2, '', {
+        fontSize: '16px',
         fontFamily: 'monospace',
         color: '#ffffff',
-        fontStyle: 'bold'
+        align: 'center',
+        wordWrap: { width: buttonWidth - 20 }
       }).setOrigin(0.5);
       text.setVisible(false);
       
       button.on('pointerover', () => {
-        button.setFillStyle(0x0088EE, 1);
-        this.showMessage(action.desc);
+        if (this.state === BattleState.WAITING_FOR_ANSWER) {
+          button.setFillStyle(0x006600, 1);
+        }
       });
       
       button.on('pointerout', () => {
-        button.setFillStyle(0x0066CC, 0.8);
+        if (this.state === BattleState.WAITING_FOR_ANSWER) {
+          button.setFillStyle(0x004400, 0.9);
+        }
       });
       
       button.on('pointerdown', () => {
-        this.selectAction(action.name);
+        if (this.state === BattleState.WAITING_FOR_ANSWER) {
+          this.selectAnswer(i);
+        }
       });
       
-      this.actionButtons.push({ button, text, action: action.name });
+      this.answerButtons.push({ button, text, answerIndex: i });
+    }
+  }
+  
+  private askQuestion() {
+    this.state = BattleState.LOADING_QUESTION;
+    this.showMessage('Preparing question...');
+    
+    // Try to get a question from cache first, then LLM, then fallback to static
+    this.getNextQuestion().then(question => {
+      if (!question) {
+        console.error('No question available!');
+        this.victory();
+        return;
+      }
+      
+      this.currentQuestion = question;
+      this.askedQuestions.push(question.question);
+      
+      this.state = BattleState.SHOWING_QUESTION;
+      this.questionText.setText(this.currentQuestion.question);
+      this.showMessage('Choose your answer...');
+      
+      // Show answer buttons
+      this.answerButtons.forEach(({ button, text }, index) => {
+        text.setText(this.currentQuestion.answers[index]);
+        button.setVisible(true);
+        text.setVisible(true);
+      });
+      
+      this.state = BattleState.WAITING_FOR_ANSWER;
+    }).catch(err => {
+      console.error('Error getting question:', err);
+      // Use fallback static question
+      this.useFallbackQuestion();
     });
   }
   
-  private showActionMenu() {
-    this.actionButtons.forEach(({ button, text }) => {
+  /**
+   * Get the next question - tries LLM API first, falls back to static questions
+   */
+  private async getNextQuestion(): Promise<QuizQuestion | null> {
+    // Reset questionId for each new question
+    this.currentQuestionId = null;
+    
+    // Check cache first
+    if (this.questionCache.length > 0) {
+      return this.questionCache.shift()!;
+    }
+    
+    // Try to fetch from LLM API
+    if (this.llmApi) {
+      try {
+        console.log('Fetching AI-generated question for:', this.enemy.displayName);
+        const response = await this.llmApi.generateBattleQuiz({
+          enemyId: this.enemy.id,
+          enemyName: this.enemy.displayName,
+          enemyZone: this.enemy.zone,
+          isBoss: this.enemy.isBoss,
+          difficulty: this.enemy.difficulty,
+          playerLevel: this.playerStats.level,
+          previousQuestions: this.askedQuestions
+        });
+        
+        if (response && response.question) {
+          console.log('AI generated question:', response.question.question);
+          
+          // Store the question ID for tracking correct answers
+          if (response.questionId) {
+            this.currentQuestionId = response.questionId;
+          }
+          
+          // Show taunt if available
+          if (response.tauntMessage) {
+            this.showMessage(response.tauntMessage);
+            await this.delay(1500);
+          }
+          
+          return response.question;
+        }
+      } catch (err) {
+        console.warn('LLM API failed, falling back to static questions:', err);
+      }
+    }
+    
+    // Fallback to static questions from enemy data
+    return this.getStaticQuestion();
+  }
+  
+  /**
+   * Get a static question from the enemy's question pool
+   */
+  private getStaticQuestion(): QuizQuestion | null {
+    if (!this.enemy.questions || this.enemy.questions.length === 0) {
+      return null;
+    }
+    
+    // Filter out already asked questions
+    const availableQuestions = this.enemy.questions.filter(
+      q => !this.askedQuestions.includes(q.question)
+    );
+    
+    if (availableQuestions.length === 0) {
+      // All questions asked, reset and allow repeats
+      return this.enemy.questions[Math.floor(Math.random() * this.enemy.questions.length)];
+    }
+    
+    return availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+  }
+  
+  /**
+   * Use a fallback static question when LLM fails
+   */
+  private useFallbackQuestion() {
+    const question = this.getStaticQuestion();
+    
+    if (!question) {
+      console.error('No fallback questions available!');
+      this.victory();
+      return;
+    }
+    
+    this.currentQuestion = question;
+    this.askedQuestions.push(question.question);
+    
+    this.state = BattleState.SHOWING_QUESTION;
+    this.questionText.setText(this.currentQuestion.question);
+    this.showMessage('Choose your answer...');
+    
+    // Show answer buttons
+    this.answerButtons.forEach(({ button, text }, index) => {
+      text.setText(this.currentQuestion.answers[index]);
       button.setVisible(true);
       text.setVisible(true);
     });
+    
+    this.state = BattleState.WAITING_FOR_ANSWER;
   }
   
-  private hideActionMenu() {
-    this.actionButtons.forEach(({ button, text }) => {
+  /**
+   * Simple delay helper for async operations
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  private hideAnswerButtons() {
+    this.answerButtons.forEach(({ button, text }) => {
       button.setVisible(false);
       text.setVisible(false);
     });
   }
   
-  private selectAction(action: string) {
-    if (this.state !== BattleState.PLAYER_TURN) return;
+  private selectAnswer(answerIndex: number) {
+    this.state = BattleState.ANSWER_RESULT;
+    this.hideAnswerButtons();
     
-    this.hideActionMenu();
-    this.state = BattleState.PLAYER_ACTION;
-    this.executePlayerAction(action);
-  }
-  
-  private executePlayerAction(action: string) {
-    this.showMessage(`You used ${action}!`);
+    const isCorrect = answerIndex === this.currentQuestion.correctIndex;
     
-    // Player attack animation
-    this.tweens.add({
-      targets: this.playerSprite,
-      y: this.playerSprite.y - 20,
-      duration: 200,
-      yoyo: true,
-      ease: 'Power2'
-    });
+    // Mark question as answered in the database (async, don't wait)
+    if (this.currentQuestionId && this.llmApi) {
+      this.llmApi.markQuestionAnswered(this.currentQuestionId, isCorrect)
+        .catch(err => console.warn('Failed to mark question as answered:', err));
+    }
     
-    this.time.delayedCall(500, () => {
-      const damage = this.calculateDamage(action, this.playerStats, this.enemy);
+    if (isCorrect) {
+      // Correct answer - damage enemy
+      this.showMessage('Correct! Your knowledge prevails!');
+      
+      const damage = 30;
       this.enemyHP -= damage;
       
       // Show damage
@@ -235,55 +391,28 @@ export default class BattleScene extends Phaser.Scene {
       // Enemy hit animation
       this.tweens.add({
         targets: this.enemySprite,
-        x: this.enemySprite.x + 10,
+        x: this.enemySprite.x + 15,
         duration: 50,
         yoyo: true,
-        repeat: 3,
+        repeat: 4,
         ease: 'Power2'
       });
       
       this.updateHPBars();
       
-      this.time.delayedCall(1000, () => {
+      this.time.delayedCall(1500, () => {
         if (this.enemyHP <= 0) {
           this.victory();
         } else {
-          this.enemyTurn();
+          this.askQuestion();
         }
       });
-    });
-  }
-  
-  private enemyTurn() {
-    this.state = BattleState.ENEMY_TURN;
-    this.showMessage(`${this.enemy.displayName} prepares to counter-argue...`);
-    
-    this.time.delayedCall(1500, () => {
-      this.state = BattleState.ENEMY_ACTION;
-      this.executeEnemyAction();
-    });
-  }
-  
-  private executeEnemyAction() {
-    const actions = ['argues back', 'challenges your logic', 'presents counter-evidence'];
-    const actionText = actions[Math.floor(Math.random() * actions.length)];
-    
-    this.showMessage(`${this.enemy.displayName} ${actionText}!`);
-    
-    // Enemy attack animation
-    this.tweens.add({
-      targets: this.enemySprite,
-      y: this.enemySprite.y + 20,
-      duration: 200,
-      yoyo: true,
-      ease: 'Power2'
-    });
-    
-    this.time.delayedCall(500, () => {
-      const damage = this.calculateDamage('ARGUE', this.enemy, this.playerStats);
-      this.playerStats.currentHP -= damage;
+    } else {
+      // Wrong answer - player takes damage
+      this.showMessage(`Wrong! The correct answer was: ${this.currentQuestion.answers[this.currentQuestion.correctIndex]}`);
       
-      // Update registry
+      const damage = 20;
+      this.playerStats.currentHP -= damage;
       this.registry.set('playerStats', this.playerStats);
       
       // Show damage
@@ -307,37 +436,19 @@ export default class BattleScene extends Phaser.Scene {
         uiScene.showDamageTaken(damage);
       }
       
-      this.time.delayedCall(1000, () => {
+      this.time.delayedCall(2500, () => {
         if (this.playerStats.currentHP <= 0) {
           this.defeat();
         } else {
-          this.state = BattleState.PLAYER_TURN;
-          this.showMessage('What will you do?');
-          this.showActionMenu();
+          this.askQuestion();
         }
       });
-    });
-  }
-  
-  private calculateDamage(action: string, attacker: any, defender: any): number {
-    const baseDamage: Record<string, number> = {
-      'ARGUE': 25,
-      'DEFLECT': 18,
-      'EVIDENCE': 33,
-      'PERSUADE': 18
-    };
-    
-    const base = baseDamage[action] || 20;
-    const attackBonus = Math.floor(attacker.logic / 10);
-    const defenseReduction = Math.floor(defender.resilience / 15);
-    const randomFactor = Phaser.Math.Between(-5, 5);
-    
-    return Math.max(1, base + attackBonus - defenseReduction + randomFactor);
+    }
   }
   
   private victory() {
     this.state = BattleState.VICTORY;
-    this.hideActionMenu();
+    this.hideAnswerButtons();
     
     // Enemy defeated animation
     this.tweens.add({
@@ -382,7 +493,7 @@ export default class BattleScene extends Phaser.Scene {
   
   private defeat() {
     this.state = BattleState.DEFEAT;
-    this.hideActionMenu();
+    this.hideAnswerButtons();
     
     // Player defeated animation
     this.tweens.add({
@@ -392,7 +503,7 @@ export default class BattleScene extends Phaser.Scene {
       ease: 'Power2'
     });
     
-    this.showMessage('You were overwhelmed by their arguments...');
+    this.showMessage('You were overwhelmed by their questions...');
     
     this.time.delayedCall(2000, () => {
       // Penalty
@@ -400,47 +511,23 @@ export default class BattleScene extends Phaser.Scene {
       this.playerStats.currentHP = this.playerStats.maxHP; // Respawn with full HP
       this.registry.set('playerStats', this.playerStats);
       
-      this.showMessage(`You lost half your gold. Respawning at lobby...`);
+      this.showMessage('You lost half your gold and retreated...');
       
-      this.time.delayedCall(2000, () => {
-        this.autoSave();
-        
-        // Return to lobby
-        this.cameras.main.fade(500, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start('OfficeScene', {
-            spawnPosition: { x: 400, y: 300 }, // Lobby
-            currentZone: 'lobby'
-          });
-        });
-      });
+      this.time.delayedCall(2000, () => this.endBattle());
     });
   }
   
   private endBattle() {
-    // If boss, mark as defeated
-    if (this.isBossBattle) {
-      const defeatedBosses: string[] = this.registry.get('defeatedBosses') || [];
-      defeatedBosses.push(this.enemy.id);
-      this.registry.set('defeatedBosses', defeatedBosses);
+    console.log('BattleScene.endBattle() - Transitioning back to OfficeScene');
+    this.cameras.main.fadeOut(500, 0, 0, 0);
+    this.time.delayedCall(500, () => {
+      console.log('BattleScene - Starting OfficeScene with position:', this.returnPosition);
+      // Mark this enemy as defeated in registry
+      const defeatedEnemies = this.registry.get('defeatedEnemies') || [];
+      defeatedEnemies.push(this.enemy.displayName);
+      this.registry.set('defeatedEnemies', defeatedEnemies);
       
-      // Check if all bosses defeated (game over)
-      if (defeatedBosses.length >= 3) {
-        this.autoSave();
-        this.cameras.main.fade(500, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start('GameOverScene');
-        });
-        return;
-      }
-    }
-    
-    // Auto-save
-    this.autoSave();
-    
-    // Return to office
-    this.cameras.main.fade(500, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => {
+      // Start OfficeScene with spawn position (scene.start replaces current scene)
       this.scene.start('OfficeScene', {
         spawnPosition: this.returnPosition,
         currentZone: this.returnZone
@@ -450,28 +537,19 @@ export default class BattleScene extends Phaser.Scene {
   
   private updateHPBars() {
     const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
     
     // Enemy HP
-    const enemyHPPercent = Math.max(0, this.enemyHP / this.enemy.maxHP);
     this.enemyHPBar.clear();
-    
-    let enemyColor = 0xFF0000;
-    if (enemyHPPercent > 0.5) enemyColor = 0xFF6600;
-    if (enemyHPPercent > 0.75) enemyColor = 0xFFFF00;
-    
-    this.enemyHPBar.fillStyle(enemyColor, 1);
-    this.enemyHPBar.fillRoundedRect(width / 2 - 150, 280, 300 * enemyHPPercent, 25, 4);
+    const enemyHPPercent = Math.max(0, this.enemyHP / this.enemy.maxHP);
+    this.enemyHPBar.fillStyle(0xFF0000, 1);
+    this.enemyHPBar.fillRoundedRect(width / 2 - 150, 240, 300 * enemyHPPercent, 20, 4);
     
     // Player HP
-    const playerHPPercent = Math.max(0, this.playerStats.currentHP / this.playerStats.maxHP);
     this.playerHPBar.clear();
-    
-    let playerColor = 0x00FF00;
-    if (playerHPPercent < 0.5) playerColor = 0xFFFF00;
-    if (playerHPPercent < 0.25) playerColor = 0xFF0000;
-    
-    this.playerHPBar.fillStyle(playerColor, 1);
-    this.playerHPBar.fillRoundedRect(width / 2 - 150, 495, 300 * playerHPPercent, 25, 4);
+    const playerHPPercent = Math.max(0, this.playerStats.currentHP / this.playerStats.maxHP);
+    this.playerHPBar.fillStyle(0x00FF00, 1);
+    this.playerHPBar.fillRoundedRect(30, height - 80, 140 * playerHPPercent, 15, 4);
   }
   
   private showMessage(text: string) {
@@ -480,7 +558,7 @@ export default class BattleScene extends Phaser.Scene {
   
   private showDamageNumber(damage: number, x: number, y: number) {
     const damageText = this.add.text(x, y, `-${damage}`, {
-      fontSize: '36px',
+      fontSize: '32px',
       fontFamily: 'monospace',
       color: '#FF0000',
       fontStyle: 'bold',
@@ -496,18 +574,5 @@ export default class BattleScene extends Phaser.Scene {
       ease: 'Power2',
       onComplete: () => damageText.destroy()
     });
-  }
-  
-  private autoSave() {
-    const gameAPI = this.registry.get('gameAPI');
-    if (gameAPI) {
-      gameAPI.saveGame({
-        position: this.returnPosition,
-        currentZone: this.returnZone,
-        playerStats: this.playerStats,
-        defeatedBosses: this.registry.get('defeatedBosses'),
-        playTime: this.registry.get('playTime')
-      });
-    }
   }
 }

@@ -87,8 +87,8 @@ public class GameStateRepository : IGameStateRepository
                 {
                     TenantId = tenantId,
                     UserId = userId,
-                    request.PositionX,
-                    request.PositionY,
+                    PositionX = (int)request.PositionX,
+                    PositionY = (int)request.PositionY,
                     request.CurrentZone,
                     request.Level,
                     request.Exp,

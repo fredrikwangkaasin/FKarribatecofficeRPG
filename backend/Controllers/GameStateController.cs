@@ -58,8 +58,29 @@ public class GameStateController : ControllerBase
     /// Save game state for the authenticated user
     /// </summary>
     [HttpPost("save")]
-    public async Task<IActionResult> SaveGameState([FromBody] GameStateSaveRequest request)
+    public async Task<IActionResult> SaveGameState([FromBody] GameStateSaveRequest? request)
     {
+        _logger.LogInformation("SaveGameState endpoint called");
+        
+        if (request == null)
+        {
+            _logger.LogWarning("SaveGameState called with null request body");
+            return BadRequest(new { message = "Request body is required" });
+        }
+
+        _logger.LogInformation("Received save request: Level={Level}, Gold={Gold}, Zone={Zone}", 
+            request.Level, request.Gold, request.CurrentZone);
+
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            _logger.LogWarning("SaveGameState model validation failed: {Errors}", string.Join(", ", errors));
+            return BadRequest(new { message = "Invalid request", errors });
+        }
+
         try
         {
             var (tenantId, userId) = GetUserContext();
